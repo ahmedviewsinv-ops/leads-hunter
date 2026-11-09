@@ -1,0 +1,1310 @@
+<title>Mirage Leads Hunter</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sidebar with the logo and page links | one page at a time (dashboard, hunt, leads, WhatsApp, email), routed by the URL hash. Dark glass, RTL for Arabic and LTR for English. */
+:root {
+  --bg: #060b1c;
+  --glass: rgba(18, 30, 68, 0.58);
+  --line: rgba(124, 154, 255, 0.17);
+  --fg: #e9eeff;
+  --muted: #8d9ac5;
+  --accent: #3b7bff;
+  --accent-2: #7a5cff;
+  --cyan: #4fd8ff;
+  --good: #34d399;
+  --warn: #fbbf24;
+  --crit: #fb7185;
+  --font-display: "Readex Pro", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Readex Pro", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(59, 123, 255, 0.28), transparent 60%),
+    radial-gradient(700px 420px at 0% 100%, rgba(122, 92, 255, 0.2), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+select option { background: #0e1838; color: #e9eeff; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.app {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: 20px;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding-block: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  min-width: 0;
+}
+.pad { padding: 16px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; font-weight: 600; letter-spacing: 0; }
+h2 { font-size: 16px; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--font-mono); }
+.ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; text-align: left; }
+
+/* sidebar */
+.sidebar {
+  position: sticky; top: 16px; align-self: start;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 18px 14px; height: calc(100vh - 32px); max-height: 780px;
+}
+.logo-wrap { display: grid; place-items: center; padding: 2px 2px 12px; border-bottom: 1px solid var(--line); }
+.logo-img { width: 100%; max-width: 200px; max-height: 110px; object-fit: contain; background: none; border: 0; filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.45)) drop-shadow(0 4px 14px rgba(79, 216, 255, 0.22)); }
+.logo-text { font-family: var(--font-display); font-weight: 700; font-size: 30px; background: linear-gradient(90deg, var(--cyan), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav a {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: var(--muted);
+  text-decoration: none; border: 1px solid transparent; font-weight: 500;
+}
+.nav a:hover { color: var(--fg); background: rgba(255, 255, 255, 0.06); }
+.nav a[aria-current="page"] { color: #fff; background: rgba(59, 123, 255, 0.26); border-color: rgba(100, 150, 255, 0.5); }
+.nav svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+
+/* top bar of a page */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.topbar h1 { font-size: 24px; font-weight: 700; }
+.topbar .muted { font-size: 13px; }
+.top-r { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.badge {
+  font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(251, 191, 36, 0.4);
+  color: var(--warn); background: rgba(251, 191, 36, 0.08); text-align: center;
+}
+.badge.live { border-color: rgba(52, 211, 153, 0.45); color: var(--good); background: rgba(52, 211, 153, 0.08); }
+.page { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+/* kpis */
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.kpi { padding: 14px 16px; }
+.kpi .l { color: var(--muted); font-size: 12px; }
+.kpi .v { font-family: var(--font-display); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.quick { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* forms */
+.split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; min-width: 0; }
+.field > label, .lbl { font-size: 12px; color: var(--muted); }
+.in {
+  background: rgba(6, 12, 34, 0.65); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; width: 100%; min-width: 0;
+}
+textarea.in { resize: vertical; min-height: 76px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  border: 1px solid var(--line); background: rgba(255, 255, 255, 0.03); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; color: var(--muted);
+}
+.chip[aria-pressed="true"] { color: #fff; background: rgba(59, 123, 255, 0.32); border-color: rgba(100, 150, 255, 0.65); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 6px 12px; color: var(--muted); font-size: 12.5px; }
+.seg button[aria-pressed="true"] { background: rgba(59, 123, 255, 0.35); color: #fff; }
+.switch { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.switch input { accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+.btn {
+  border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 8px 14px; font-size: 13px; color: var(--fg);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; white-space: nowrap;
+}
+.btn:hover { background: rgba(255, 255, 255, 0.1); }
+.btn.primary { background: linear-gradient(135deg, var(--accent), #4f63ff); border-color: rgba(140, 175, 255, 0.5); font-weight: 600; box-shadow: 0 8px 22px -10px rgba(59, 123, 255, 0.9); }
+.btn.wa { background: rgba(37, 211, 102, 0.16); border-color: rgba(37, 211, 102, 0.5); color: #8ff0b4; }
+.btn.mail { background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.45); color: #fcd34d; }
+.btn.xl { background: rgba(52, 211, 153, 0.14); border-color: rgba(52, 211, 153, 0.5); color: #86efac; }
+.btn.danger { border-color: rgba(251, 113, 133, 0.55); color: var(--crit); }
+.btn.sm { padding: 4px 9px; font-size: 12px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.run { background: rgba(6, 12, 34, 0.5); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.bar { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--cyan)); transition: width 0.2s; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.stats b { display: block; font-family: var(--font-display); font-size: 20px; font-variant-numeric: tabular-nums; }
+.stats span { font-size: 11px; color: var(--muted); }
+.log { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); min-height: 76px; display: flex; flex-direction: column; gap: 2px; direction: ltr; text-align: left; overflow: hidden; }
+.log div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log .ok { color: var(--good); }
+.log .bad { color: var(--crit); }
+.hint { font-size: 12px; color: var(--muted); }
+.warnbox { font-size: 12.5px; color: #fde68a; background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 10px 12px; }
+.card-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* connection cards */
+.cpill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 4px 12px; font-size: 13px; border: 1px solid var(--line); }
+.cpill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.c-off { color: var(--muted); }
+.c-starting, .c-qr { color: var(--warn); border-color: rgba(251, 191, 36, 0.45); background: rgba(251, 191, 36, 0.08); }
+.c-connected { color: var(--good); border-color: rgba(52, 211, 153, 0.5); background: rgba(52, 211, 153, 0.1); }
+.c-error { color: var(--crit); border-color: rgba(251, 113, 133, 0.5); background: rgba(251, 113, 133, 0.08); }
+.acct { font-family: var(--font-mono); font-size: 22px; direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.qrbox { display: grid; place-items: center; min-height: 230px; background: #fff; border-radius: 14px; padding: 12px; width: 100%; max-width: 280px; color: #1b2440; text-align: center; font-size: 13px; }
+.qrbox img { width: 100%; height: auto; image-rendering: pixelated; }
+.steps { margin: 0; padding-inline-start: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 13px; }
+.lock { opacity: 0.45; pointer-events: none; }
+
+/* leads table */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 16px 0; }
+.tab {
+  border: 1px solid var(--line); background: rgba(255, 255, 255, 0.03); border-radius: 12px 12px 0 0; padding: 8px 14px; color: var(--muted); font-size: 13px;
+}
+.tab[aria-selected="true"] { color: #fff; background: rgba(59, 123, 255, 0.22); border-color: rgba(100, 150, 255, 0.55); }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 14px 16px 6px; }
+.tools .in { width: auto; flex: 1 1 170px; }
+.tools select.in { flex: 0 1 190px; }
+.tablewrap { overflow-x: auto; padding: 0 16px; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+th { text-align: start; font-weight: 500; font-size: 12px; color: var(--muted); padding: 8px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px 8px; border-bottom: 1px solid rgba(124, 154, 255, 0.09); vertical-align: middle; font-size: 13px; }
+tr.sel td { background: rgba(59, 123, 255, 0.09); }
+td input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; }
+.co { display: flex; align-items: center; gap: 10px; min-width: 150px; }
+.av { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: 13px; flex: none; background: linear-gradient(135deg, #2a4aa8, #5b3fc9); }
+.co small { display: block; color: var(--muted); font-size: 11.5px; }
+.score { display: flex; align-items: center; gap: 8px; min-width: 110px; }
+.score .bar { flex: 1; height: 6px; }
+.score b { font-variant-numeric: tabular-nums; font-size: 12px; width: 22px; }
+.pill { border-radius: 999px; padding: 2px 10px; font-size: 12px; border: 1px solid; background: transparent; white-space: nowrap; }
+.s-new { color: var(--cyan); border-color: rgba(79, 216, 255, 0.45); background: rgba(79, 216, 255, 0.08); }
+.s-contacted { color: var(--warn); border-color: rgba(251, 191, 36, 0.45); background: rgba(251, 191, 36, 0.08); }
+.s-qualified { color: var(--good); border-color: rgba(52, 211, 153, 0.45); background: rgba(52, 211, 153, 0.08); }
+.s-demo { color: #b9a5ff; border-color: rgba(122, 92, 255, 0.55); background: rgba(122, 92, 255, 0.14); }
+.s-optout { color: var(--crit); border-color: rgba(251, 113, 133, 0.45); background: rgba(251, 113, 133, 0.08); }
+.src { font-size: 11.5px; border-radius: 6px; padding: 1px 7px; border: 1px solid var(--line); color: var(--muted); }
+.src.maps { color: #86efac; border-color: rgba(52, 211, 153, 0.4); }
+.foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px 16px; }
+.pager { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.pager button { min-width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); font-variant-numeric: tabular-nums; }
+.pager button[aria-current="true"] { background: var(--accent); border-color: transparent; color: #fff; }
+.empty { padding: 28px; text-align: center; color: var(--muted); }
+
+/* dashboard cards */
+.donut-wrap { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.donut { position: relative; width: 150px; height: 150px; flex: none; }
+.donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut .c { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.donut .c b { font-family: var(--font-display); font-size: 26px; font-variant-numeric: tabular-nums; }
+.donut .c span { font-size: 11px; color: var(--muted); }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; flex: 1; min-width: 120px; }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.legend i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.legend em { margin-inline-start: auto; font-style: normal; font-variant-numeric: tabular-nums; color: var(--muted); }
+.hot { display: flex; flex-direction: column; gap: 10px; }
+.hot-i { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; }
+.hot-i b { font-weight: 600; }
+.hot-i .bar { grid-column: 1 / -1; height: 5px; }
+.hot-i small { color: var(--muted); font-size: 11.5px; }
+.tl { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.tl li { display: grid; grid-template-columns: 12px 1fr; gap: 10px; }
+.tl li::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: 6px; box-shadow: 0 0 10px var(--accent); }
+.tl small { color: var(--muted); display: block; }
+.kw { display: flex; flex-direction: column; gap: 12px; }
+.kw-i { display: grid; grid-template-columns: 1fr auto; gap: 4px; font-size: 13px; }
+.kw-i .bar { grid-column: 1 / -1; height: 6px; }
+.kw-i span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; bottom: max(16px, env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%);
+  background: rgba(14, 24, 56, 0.96); border: 1px solid rgba(100, 150, 255, 0.5); border-radius: 12px; padding: 10px 16px; z-index: 20; font-size: 13px; max-width: calc(100vw - 32px);
+}
+
+@media (max-width: 1100px) {
+  .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid3 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { position: static; height: auto; max-height: none; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px 12px; gap: 10px; }
+  .logo-wrap { border: 0; padding: 0; }
+  .logo-img { max-width: 120px; max-height: 56px; }
+  .nav { flex-direction: row; overflow-x: auto; max-width: 100%; flex: 1 1 100%; order: 3; }
+  .nav a { padding: 8px 10px; flex: none; }
+  .side-foot { margin: 0 0 0 auto; flex-direction: row; align-items: center; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .split, .grid2, .row2, .row3 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="app">
+  <aside class="sidebar glass">
+    <div class="logo-wrap"><img class="logo-img" src="/logo.png" alt="Mirage"></div>
+    <nav class="nav" aria-label="Pages">
+      <a href="#dashboard" data-pg="dashboard"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="8" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.5"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.5"/><rect x="3.5" y="14.5" width="7" height="6" rx="1.5"/></svg><span data-i18n="nav_dashboard"></span></a>
+      <a href="#hunt" data-pg="hunt"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><span data-i18n="nav_hunt"></span></a>
+      <a href="#leads" data-pg="leads"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.4 2.9-5 5.5-5s4.9 1.6 5.5 5"/><path d="M16 5.2a3 3 0 010 5.6M18 14.3c1.7.6 2.7 2.2 3 4.7"/></svg><span data-i18n="nav_leads"></span></a>
+      <a href="#whatsapp" data-pg="whatsapp"><svg viewBox="0 0 24 24"><path d="M4 20l1.2-4A8 8 0 1112 20a8 8 0 01-3.8-1z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.3-1.8-1-.9.7a4 4 0 01-1.7-1.7l.7-.9-1-1.8z"/></svg><span data-i18n="nav_whatsapp"></span></a>
+      <a href="#email" data-pg="email"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></svg><span data-i18n="nav_email"></span></a>
+    </nav>
+    <div class="side-foot">
+      <button class="btn sm" id="langBtn" type="button" aria-label="Language"></button>
+      <span class="badge" id="modeBadge"></span>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div><h1 id="pgTitle"></h1><div class="muted" id="pgSub"></div></div>
+      <div class="top-r" id="batchBox">
+        <label class="hint" for="fBatch" data-i18n="batch_label"></label>
+        <select class="in" id="fBatch" style="width:auto; max-width:260px"></select>
+      </div>
+    </header>
+
+    <!-- ============ dashboard ============ -->
+    <section class="page" id="p-dashboard">
+      <div class="kpis" id="kpis"></div>
+      <div class="quick">
+        <a class="btn primary" href="#hunt" data-i18n="q_hunt"></a>
+        <a class="btn" href="#leads" data-i18n="q_leads"></a>
+        <a class="btn wa" href="#whatsapp" data-i18n="q_wa"></a>
+        <a class="btn mail" href="#email" data-i18n="q_mail"></a>
+      </div>
+      <div class="grid3">
+        <div class="glass pad">
+          <div class="card-h"><h2 data-i18n="country_title"></h2></div>
+          <div class="donut-wrap">
+            <div class="donut"><svg viewBox="0 0 120 120" id="donut" aria-hidden="true"></svg><div class="c"><b id="dPct">0%</b><span id="dName"></span></div></div>
+            <ul class="legend" id="legend"></ul>
+          </div>
+        </div>
+        <div class="glass pad">
+          <div class="card-h"><h2 data-i18n="hot_title"></h2><span class="hint" data-i18n="hot_hint"></span></div>
+          <div class="hot" id="hot"></div>
+        </div>
+        <div class="glass pad">
+          <div class="card-h"><h2 data-i18n="source_title"></h2></div>
+          <div class="kw" id="srcBars"></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="glass pad">
+          <div class="card-h"><h2 data-i18n="act_title"></h2></div>
+          <ul class="tl" id="tl"></ul>
+        </div>
+        <div class="glass pad">
+          <div class="card-h"><h2 data-i18n="kwbars_title"></h2></div>
+          <div class="kw" id="kwBars"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ hunt ============ -->
+    <section class="page" id="p-hunt" hidden>
+      <div class="glass pad split">
+        <div>
+          <div class="card-h"><h2 data-i18n="hunt_title"></h2></div>
+          <div class="field">
+            <label for="kw" data-i18n="kw_label"></label>
+            <textarea class="in" id="kw"></textarea>
+          </div>
+          <div class="field">
+            <span class="lbl" data-i18n="countries_label"></span>
+            <div class="chips" id="countryChips"></div>
+            <div style="display:flex; gap:6px; margin-top:4px">
+              <input class="in" id="customCountry" data-ph="custom_ph" style="flex:1">
+              <button class="btn" id="addCountry" type="button" data-i18n="add"></button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="lbl" data-i18n="sources_label"></span>
+            <div class="chips" id="sourceChips"></div>
+            <div class="hint" id="mapsHint"></div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="lang" data-i18n="lang_label"></label>
+              <select class="in" id="lang"><option value="ar" data-i18n="lang_ar"></option><option value="en" data-i18n="lang_en"></option><option value="both" data-i18n="lang_both"></option></select>
+            </div>
+            <div class="field">
+              <label for="maxSites" data-i18n="target_label"></label>
+              <input class="in mono" id="maxSites" type="number" min="10" step="10" value="1000">
+            </div>
+          </div>
+          <div class="field">
+            <span class="lbl" data-i18n="fields_label"></span>
+            <div class="chips" id="fieldChips"></div>
+          </div>
+          <div class="row2">
+            <div style="display:flex; flex-direction:column; gap:8px">
+              <label class="switch"><input type="checkbox" id="unlimited" checked><span data-i18n="unlimited"></span></label>
+              <label class="switch"><input type="checkbox" id="widen" checked><span data-i18n="widen"></span></label>
+              <label class="switch"><input type="checkbox" id="skipKnown" checked><span data-i18n="skipknown"></span></label>
+            </div>
+            <div class="field" style="margin:0">
+              <span class="lbl" data-i18n="mode_label"></span>
+              <div class="seg" id="modeSeg" role="group">
+                <button type="button" data-m="web" aria-pressed="false" data-i18n="m_web"></button>
+                <button type="button" data-m="win" aria-pressed="false" data-i18n="m_win"></button>
+                <button type="button" data-m="both" aria-pressed="true" data-i18n="m_both"></button>
+              </div>
+            </div>
+          </div>
+          <div class="hint" id="modeHint" style="margin-top:8px"></div>
+        </div>
+        <div class="run">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px">
+            <h2 data-i18n="run_title"></h2>
+            <span class="hint" id="queryEst"></span>
+          </div>
+          <div class="bar" role="progressbar" id="pb" aria-valuemin="0" aria-valuemax="100"><i id="pbi"></i></div>
+          <div class="stats">
+            <div><b id="stScan">0</b><span data-i18n="stat_scanned"></span></div>
+            <div><b id="stPhone">0</b><span data-i18n="stat_numbers"></span></div>
+            <div><b id="stEmail">0</b><span data-i18n="stat_emails"></span></div>
+          </div>
+          <div class="log" id="log" aria-live="polite"></div>
+          <div class="btns">
+            <button class="btn primary" id="startBtn" type="button" data-i18n="start"></button>
+            <button class="btn" id="stopBtn" type="button" disabled data-i18n="stop"></button>
+            <a class="btn" href="#leads" data-i18n="view_results"></a>
+          </div>
+          <div class="hint" data-i18n="run_note"></div>
+        </div>
+      </div>
+      <div class="glass pad">
+        <div class="card-h"><h2 data-i18n="history_title"></h2></div>
+        <div class="tablewrap" style="padding:0"><table style="min-width:640px"><thead><tr><th>#</th><th data-i18n="h_name"></th><th data-i18n="h_leads"></th><th data-i18n="h_scanned"></th><th></th></tr></thead><tbody id="histBody"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ============ leads ============ -->
+    <section class="glass page" id="p-leads" hidden>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="tools">
+        <input class="in" id="q" type="search" data-ph="search_ph">
+        <select class="in" id="fCountry"></select>
+        <select class="in" id="fSource"></select>
+      </div>
+      <div class="tools" style="padding-top:0">
+        <button class="btn" id="selAll" type="button"></button>
+        <select class="in" id="bulkStatus" style="flex:0 1 190px"></select>
+        <button class="btn" id="applyBulk" type="button" data-i18n="apply"></button>
+      </div>
+      <div class="tools" style="padding-top:0">
+        <button class="btn xl" id="xlsBtn" type="button" data-i18n="export_xlsx"></button>
+        <button class="btn" id="csvBtn" type="button" data-i18n="copy_csv"></button>
+        <button class="btn wa" id="toWa" type="button" data-i18n="to_wa"></button>
+        <button class="btn mail" id="toMail" type="button" data-i18n="to_mail"></button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th style="width:30px"></th><th data-i18n="th_company"></th><th data-i18n="th_phone"></th><th data-i18n="th_email"></th><th data-i18n="th_city"></th><th data-i18n="th_source"></th><th data-i18n="th_score"></th><th data-i18n="th_status"></th><th data-i18n="th_wa"></th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="foot">
+        <span class="muted" id="count"></span>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+          <select class="in" id="perPage" style="width:auto" aria-label="Rows per page"><option>25</option><option>50</option><option>100</option><option>250</option></select>
+          <div class="pager" id="pager"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ whatsapp ============ -->
+    <section class="page" id="p-whatsapp" hidden>
+      <div class="glass pad split">
+        <div>
+          <div class="card-h"><h2 data-i18n="wa_account"></h2><span class="cpill c-off" id="waConn"></span></div>
+          <div id="waAcctRow" hidden style="margin-bottom:12px"><div class="hint" data-i18n="wa_sending_from"></div><span class="acct" id="waAcct"></span></div>
+          <ol class="steps" id="waSteps"></ol>
+          <div class="btns" style="margin-top:14px">
+            <button class="btn wa" id="waConnect" type="button" data-i18n="wa_connect"></button>
+            <button class="btn" id="waDisc" type="button" data-i18n="wa_disconnect"></button>
+            <button class="btn danger" id="waSwitch" type="button" data-i18n="wa_switch"></button>
+          </div>
+          <div class="hint" id="waErr" style="margin-top:10px; color:var(--crit)"></div>
+        </div>
+        <div style="display:grid; place-items:center">
+          <div class="qrbox" id="waQr"></div>
+        </div>
+      </div>
+      <div class="glass pad" id="waSendCard">
+        <div class="card-h"><h2 data-i18n="sender_title"></h2><span class="hint" id="waAudience"></span></div>
+        <div class="warnbox" id="waLockMsg" style="margin-bottom:12px" data-i18n="wa_need_connect"></div>
+        <div class="split" id="waForm">
+          <div>
+            <div class="field">
+              <label for="waText" data-i18n="s_msg"></label>
+              <textarea class="in" id="waText" style="min-height:120px"></textarea>
+            </div>
+            <div class="row3">
+              <div class="field"><label for="waMin" data-i18n="s_min"></label><input class="in mono" id="waMin" type="number" min="10" value="20"></div>
+              <div class="field"><label for="waMax" data-i18n="s_max"></label><input class="in mono" id="waMax" type="number" min="10" value="45"></div>
+              <div class="field"><label for="waCap" data-i18n="s_cap"></label><input class="in mono" id="waCap" type="number" min="1" value="150"></div>
+            </div>
+            <div class="row3">
+              <div class="field"><label for="waBatch" data-i18n="s_batch"></label><input class="in mono" id="waBatch" type="number" min="0" value="30"></div>
+              <div class="field"><label for="waPause" data-i18n="s_pause"></label><input class="in mono" id="waPause" type="number" min="0" value="5"></div>
+              <label class="switch" style="align-self:end; margin-bottom:18px"><input type="checkbox" id="waSkip" checked><span data-i18n="s_skip"></span></label>
+            </div>
+          </div>
+          <div class="run">
+            <div class="bar"><i id="waFill"></i></div>
+            <div class="stats">
+              <div><b id="waSent">0</b><span data-i18n="s_sent"></span></div>
+              <div><b id="waFailed">0</b><span data-i18n="s_failed"></span></div>
+              <div><b id="waTotal">0</b><span data-i18n="s_total"></span></div>
+            </div>
+            <div class="hint" id="waStatus" aria-live="polite"></div>
+            <div class="log" id="waLog"></div>
+            <div class="btns">
+              <button class="btn wa" id="waStart" type="button" data-i18n="s_start"></button>
+              <button class="btn" id="waStop" type="button" disabled data-i18n="s_stop"></button>
+              <a class="btn" href="#leads" data-i18n="s_pick"></a>
+            </div>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:12px" id="waNote"></div>
+      </div>
+    </section>
+
+    <!-- ============ email ============ -->
+    <section class="page" id="p-email" hidden>
+      <div class="glass pad">
+        <div class="card-h"><h2 data-i18n="smtp_title"></h2><span class="cpill c-off" id="mailConn"></span></div>
+        <div class="row3">
+          <div class="field"><label for="mPreset" data-i18n="m_preset"></label>
+            <select class="in" id="mPreset"><option value="">—</option><option value="gmail">Gmail</option><option value="outlook">Outlook / Office 365</option><option value="zoho">Zoho</option><option value="custom" data-i18n="m_custom"></option></select></div>
+          <div class="field"><label for="mHost" data-i18n="m_host"></label><input class="in mono" id="mHost" dir="ltr" placeholder="smtp.gmail.com"></div>
+          <div class="field"><label for="mPort" data-i18n="m_port"></label><input class="in mono" id="mPort" type="number" value="587" dir="ltr"></div>
+        </div>
+        <div class="row3">
+          <div class="field"><label for="mSec" data-i18n="m_sec"></label>
+            <select class="in" id="mSec"><option value="starttls">STARTTLS (587)</option><option value="ssl">SSL (465)</option><option value="none">None</option></select></div>
+          <div class="field"><label for="mUser" data-i18n="m_user"></label><input class="in mono" id="mUser" dir="ltr" autocomplete="off"></div>
+          <div class="field"><label for="mPass" data-i18n="m_pass"></label><input class="in mono" id="mPass" type="password" dir="ltr" autocomplete="new-password"></div>
+        </div>
+        <div class="row3">
+          <div class="field"><label for="mFromName" data-i18n="m_fromname"></label><input class="in" id="mFromName"></div>
+          <div class="field"><label for="mFromEmail" data-i18n="m_fromemail"></label><input class="in mono" id="mFromEmail" dir="ltr"></div>
+          <div class="field"><label for="mReply" data-i18n="m_reply"></label><input class="in mono" id="mReply" dir="ltr"></div>
+        </div>
+        <div class="field"><label for="mFooter" data-i18n="m_footer"></label><textarea class="in" id="mFooter" style="min-height:56px"></textarea></div>
+        <div class="btns">
+          <button class="btn primary" id="mSave" type="button" data-i18n="m_save"></button>
+          <input class="in mono" id="mTestTo" dir="ltr" style="width:230px" data-ph="m_test_ph">
+          <button class="btn" id="mTest" type="button" data-i18n="m_test"></button>
+        </div>
+        <div class="hint" id="mMsg" style="margin-top:10px"></div>
+        <div class="hint" style="margin-top:6px" data-i18n="m_gmail_note"></div>
+      </div>
+
+      <div class="glass pad">
+        <div class="card-h"><h2 data-i18n="mail_title"></h2><span class="hint" id="mailAudience"></span></div>
+        <div class="warnbox" id="mailLockMsg" style="margin-bottom:12px" data-i18n="mail_need_smtp"></div>
+        <div class="split" id="mailForm">
+          <div>
+            <div class="field"><label for="mSubject" data-i18n="e_subject"></label><input class="in" id="mSubject"></div>
+            <div class="field"><label for="mBody" data-i18n="e_body"></label><textarea class="in" id="mBody" style="min-height:150px"></textarea></div>
+            <div class="row3">
+              <div class="field"><label for="mMin" data-i18n="s_min"></label><input class="in mono" id="mMin" type="number" min="5" value="20"></div>
+              <div class="field"><label for="mMax" data-i18n="s_max"></label><input class="in mono" id="mMax" type="number" min="5" value="60"></div>
+              <div class="field"><label for="mCap" data-i18n="s_cap"></label><input class="in mono" id="mCap" type="number" min="1" value="100"></div>
+            </div>
+            <div class="row3">
+              <div class="field"><label for="mBatch" data-i18n="s_batch"></label><input class="in mono" id="mBatch" type="number" min="0" value="30"></div>
+              <div class="field"><label for="mPause" data-i18n="s_pause"></label><input class="in mono" id="mPause" type="number" min="0" value="5"></div>
+              <label class="switch" style="align-self:end; margin-bottom:18px"><input type="checkbox" id="mSkip" checked><span data-i18n="e_skip"></span></label>
+            </div>
+          </div>
+          <div class="run">
+            <div class="bar"><i id="mFill"></i></div>
+            <div class="stats">
+              <div><b id="mSent">0</b><span data-i18n="s_sent"></span></div>
+              <div><b id="mFailed">0</b><span data-i18n="s_failed"></span></div>
+              <div><b id="mTotal">0</b><span data-i18n="s_total"></span></div>
+            </div>
+            <div class="hint" id="mStatus" aria-live="polite"></div>
+            <div class="log" id="mLog"></div>
+            <div class="btns">
+              <button class="btn mail" id="mStart" type="button" data-i18n="e_start"></button>
+              <button class="btn" id="mStop" type="button" disabled data-i18n="s_stop"></button>
+              <a class="btn" href="#leads" data-i18n="s_pick"></a>
+            </div>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:12px" data-i18n="e_note"></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ================= translations ================= */
+  var I = {
+    ar: {
+      nav_dashboard: "اللوحة", nav_hunt: "الصيد", nav_leads: "الليدز", nav_whatsapp: "واتساب", nav_email: "الإيميل",
+      pg_dashboard: "اللوحة", pg_hunt: "الصيد", pg_leads: "الليدز", pg_whatsapp: "مرسل واتساب", pg_email: "سيندر الإيميل",
+      ps_dashboard: "ملخص الليدز اللي اتصيدت", ps_hunt: "ابحث في الويب وخرائط جوجل عن شركات وأرقامها", ps_leads: "راجع الليدز، حدد، صدّر Excel، وابعت",
+      ps_whatsapp: "اربط رقم واتساب وابعت منه رسايل", ps_email: "اربط الإيميل بتاعك وابعت رسايل",
+      batch_label: "الدفعة", batch_all: "كل الدفعات", older: "ليدز قديمة",
+      badge_demo: "عرض تجريبي · بيانات وهمية", badge_live: "متصل بالباك إند",
+      kpi_total: "إجمالي الليدز", kpi_phones: "أرقام مستخرجة", kpi_emails: "إيميلات", kpi_hot: "ليدز ساخنة", kpi_scanned: "مصادر تم فحصها",
+      q_hunt: "ابدأ صيد جديد", q_leads: "افتح الليدز", q_wa: "أرسل واتساب", q_mail: "أرسل إيميل",
+      source_title: "الليدز حسب المصدر", src_web: "نتائج الويب", src_maps: "الخرائط",
+      hunt_title: "إعداد عملية الصيد", kw_label: "كلمات البحث (كل سطر استعلام)", countries_label: "الدول (اختار أي دولة)",
+      custom_ph: "أضف دولة أخرى، مثال: الأردن", add: "إضافة", lang_label: "لغة البحث", lang_ar: "العربية", lang_en: "English", lang_both: "العربية + English",
+      sources_label: "مصادر البحث", s_web: "نتائج بحث الويب", s_maps: "الخرائط",
+      maps_hint_duckduckgo: "الخرائط حاليًا من DuckDuckGo المجانية (مش بيانات خرائط جوجل). لبيانات خرائط جوجل نفسها حط GOOGLE_API_KEY (Places API) أو SERPAPI_KEY قبل تشغيل hunter.py.",
+      maps_hint_google_places: "الخرائط من Google Places API (بياناتك بتتحاسب على مفتاحك).",
+      maps_hint_serpapi_google_maps: "الخرائط من خرائط جوجل عن طريق SerpAPI.",
+      maps_hint_demo: "عرض تجريبي: الخرائط بتتجرب ببيانات وهمية. شغّل hunter.py للبحث الحقيقي.",
+      target_label: "عدد الأرقام المطلوبة", fields_label: "البيانات المطلوبة",
+      f_phone: "الهاتف", f_company: "الشركة", f_website: "الموقع", f_email: "الإيميل", f_city: "المدينة",
+      unlimited: "صفحات بحث غير محدودة", widen: "توسيع تلقائي بخدمات مشابهة", skipknown: "تجاهل الأرقام والمواقع اللي اتصيدت قبل كده",
+      mode_label: "التشغيل", m_web: "موقع", m_win: "ويندوز", m_both: "الاثنين",
+      hint_web: "تشغيل كموقع على سيرفر. أي حد يفتح الرابط من المتصفح.",
+      hint_win: "تشغيل كبرنامج ويندوز (ملف exe) بيشغل الباك إند على جهازك.",
+      hint_both: "نفس الباك إند والواجهة تشتغل كموقع وكبرنامج ويندوز في نفس الوقت.",
+      run_title: "حالة التشغيل", est: "≈ {0} استعلام متاح", stat_scanned: "مصدر تم فحصه", stat_numbers: "رقم مستخرج", stat_emails: "إيميل",
+      log_ready: "جاهز. اضغط ابدأ الصيد.", start: "ابدأ الصيد", stop: "إيقاف", view_results: "شوف النتايج",
+      run_note: "كل عملية صيد بتتحفظ كدفعة جديدة وبتظهر نتايجها لوحدها، والدفعات القديمة تفضل محفوظة. البحث بيكمل لحد ما يوصل لعدد الأرقام المطلوب، وممكن ياخد من 30 دقيقة لساعتين. المواقع اللي بتمنع الأتمتة في robots.txt بتتجاهل.",
+      history_title: "الدفعات السابقة", h_name: "الدفعة", h_leads: "الليدز", h_scanned: "تم فحصه", h_view: "عرض", h_none: "مفيش دفعات لسه.",
+      del_batch: "حذف", del_confirm: "اضغط تاني للتأكيد",
+      tab_all: "كل الليدز", st_new: "جديد", st_contacted: "تم التواصل", st_qualified: "مؤهل", st_demo: "عرض تجريبي", st_optout: "إيقاف الرسائل",
+      search_ph: "ابحث في الشركات أو الأرقام أو المدن", all_countries: "كل الدول", all_sources: "كل المصادر",
+      sel_all: "تحديد كل الليدز ({0})", sel_clear: "إلغاء تحديد الكل ({0})", bulk_ph: "غيّر الحالة إلى…", apply: "تطبيق", copy_csv: "نسخ CSV", export_xlsx: "تصدير Excel",
+      to_wa: "أرسل واتساب للمحدد", to_mail: "أرسل إيميل للمحدد",
+      th_company: "الشركة", th_phone: "الهاتف", th_email: "الإيميل", th_city: "المدينة", th_source: "المصدر", th_score: "التقييم", th_status: "الحالة", th_wa: "واتساب",
+      showing: "عرض {0} إلى {1} من {2}", selected: "محدد {0}", zero_results: "0 نتيجة",
+      empty_table: "مفيش ليدز مطابقة. غيّر الفلتر أو ابدأ عملية صيد جديدة.", wa_btn: "واتساب", cycle_title: "اضغط لتغيير الحالة",
+      act_title: "آخر النشاط", kwbars_title: "الليدز حسب كلمة البحث", country_title: "الليدز حسب الدولة", hot_title: "ليدز ساخنة", hot_hint: "تقييم 85 فأكثر",
+      hot_none: "لسه مفيش ليدز بتقييم عالي.", none_yet: "لسه مفيش بيانات.",
+      wa_account: "حساب واتساب", wa_sending_from: "الإرسال هيتم من الرقم", wa_connect: "اربط واتساب", wa_disconnect: "افصل", wa_switch: "غيّر الرقم",
+      wc_off: "غير متصل", wc_starting: "جاري الفتح...", wc_qr: "في انتظار مسح الكود", wc_connected: "متصل", wc_error: "خطأ",
+      wa_step1: "اضغط \"اربط واتساب\". هتفتح نافذة Chrome على واتساب ويب (ومتقفلهاش).",
+      wa_step2: "على موبايلك افتح واتساب ← الأجهزة المرتبطة ← ربط جهاز، وامسح الكود اللي هيظهر هنا أو في نافذة Chrome.",
+      wa_step3: "لما يظهر رقمك هنا بحالة \"متصل\"، تقدر تبعت. الدخول بيتحفظ، فمش هتمسح الكود تاني.",
+      wa_step4: "عايز تبعت من رقم تاني؟ اضغط \"غيّر الرقم\" وامسح كود جديد.",
+      wa_demo_conn: "عرض تجريبي: الربط هنا وهمي. شغّل hunter.py على جهازك لربط رقم حقيقي.",
+      qr_wait: "جاري تحميل الكود...", qr_idle: "الكود هيظهر هنا بعد ما تضغط \"اربط واتساب\"", qr_ok: "الرقم متصل ✓", qr_scan: "امسح الكود من واتساب على موبايلك",
+      wa_need_connect: "اربط رقم واتساب الأول (الجزء اللي فوق). مفيش إرسال من غير رقم متصل.",
+      sender_title: "إرسال الرسايل", s_audience: "المستلمين: {0}", s_msg: "نص الرسالة (استخدم {company} و {city})",
+      s_min: "أقل تأخير (ث)", s_max: "أقصى تأخير (ث)", s_cap: "الحد اليومي", s_batch: "استراحة كل (رسالة)", s_pause: "مدة الاستراحة (دقيقة)",
+      s_skip: "تخطي اللي اتبعتلهم قبل كده", s_start: "ابدأ الإرسال", s_stop: "إيقاف", s_pick: "اختار المستلمين من الليدز",
+      s_sent: "تم", s_failed: "فشل", s_total: "الإجمالي",
+      ss_idle: "جاهز للإرسال", ss_sending: "جاري الإرسال إلى {0}", ss_waiting: "الرسالة التالية بعد {0} ث", ss_done: "تم الانتهاء ✅", ss_stopped: "تم الإيقاف",
+      ss_error: "خطأ: {0}", ss_daily_cap: "وصلت للحد اليومي، كمّل بكرة",
+      s_note_live: "المرسل بيبعت من الرقم المتصل فوق، رسالة رسالة بتأخير عشوائي. واتساب بيحظر الأرقام اللي بتبعت رسائل جماعية لناس مش عارفينك، فابدأ بكمية صغيرة من رقم تقدر تستغنى عنه، والتزم بالحد اليومي والاستراحات، وحط في الرسالة طريقة إيقاف الرسايل.",
+      s_note_demo: "ده عرض تجريبي: مفيش رسائل بتتبعت فعلًا. شغّل hunter.py على جهازك للإرسال الحقيقي. واتساب بيحظر الأرقام اللي بتبعت رسائل جماعية، فابدأ بكمية صغيرة.",
+      smtp_title: "إعدادات الإيميل (SMTP)", mc_off: "لسه متضبطش", mc_set: "جاهز", m_preset: "مزود الإيميل", m_custom: "مخصص", m_host: "سيرفر SMTP", m_port: "المنفذ", m_sec: "التشفير",
+      m_user: "اسم المستخدم (الإيميل)", m_pass: "الباسورد", m_fromname: "اسم المرسل", m_fromemail: "إيميل المرسل (اختياري)", m_reply: "الرد على (اختياري)",
+      m_footer: "سطر إيقاف الرسايل (بيتضاف في آخر كل إيميل)", m_save: "حفظ الإعدادات", m_test_ph: "ابعت اختبار على إيميلك", m_test: "إرسال اختبار",
+      m_gmail_note: "مع Gmail استخدم \"كلمة مرور التطبيق\" (App Password) من إعدادات الأمان بعد تفعيل التحقق بخطوتين، مش باسورد الحساب. الباسورد بيتحفظ في ملف settings.json على جهازك.",
+      m_saved: "تم حفظ الإعدادات", m_pass_kept: "(محفوظ، سيبه فاضي عشان يفضل زي ما هو)", m_test_ok: "تم إرسال إيميل الاختبار، شيّك على صندوق الوارد", m_test_fail: "فشل الاختبار: {0}",
+      mail_title: "إرسال الإيميلات", mail_need_smtp: "احفظ إعدادات الـSMTP الأول (الجزء اللي فوق) وجرّب إيميل اختبار.",
+      e_subject: "الموضوع", e_body: "نص الإيميل (استخدم {company} و {city})", e_skip: "تخطي اللي اتبعتلهم إيميل قبل كده", e_start: "ابدأ إرسال الإيميلات",
+      e_note: "الإيميل بيتبعت نص عادي، واحد واحد بتأخير عشوائي وحد يومي، وبيتضاف في آخره سطر إيقاف الرسايل. Gmail العادي بيسمح بحوالي 500 رسالة في اليوم. ابعت لشركات بتنشر إيميلها للتواصل التجاري، ولو حد طلب الإيقاف غيّر حالته لـ\"إيقاف الرسائل\" عشان يتخطاه النظام.",
+      mmail_default_subject: "عرض من ميراج للتسويق الإلكتروني",
+      es_idle: "جاهز للإرسال",
+      t_need_kw: "اكتب كلمة بحث واحدة على الأقل", t_need_country: "اختار دولة واحدة على الأقل", t_need_source: "اختار مصدر بحث واحد على الأقل", t_phone_fixed: "الهاتف أساسي ومش ممكن يتشال",
+      t_csv: "تم نسخ {0} ليد بصيغة CSV", t_select_first: "حدد ليدز الأول", t_need_msg: "اكتب نص الرسالة الأول", t_need_subject: "اكتب الموضوع والنص الأول",
+      t_no_recipients: "مفيش مستلمين مناسبين (اتخطوا اللي اتبعتلهم أو طلبوا الإيقاف أو من غير بيانات تواصل)", t_marked: "تم تغيير حالة {0} ليد",
+      t_copy_fail: "تعذر النسخ، انسخ يدويًا", t_busy: "فيه عملية إرسال شغالة", t_pick_status: "اختار الحالة الأول", t_batch_deleted: "تم حذف الدفعة",
+      t_xlsx_ok: "تم تنزيل ملف Excel ({0} ليد)", t_xlsx_fail: "فشل التصدير: {0}", t_xlsx_demo: "ده عرض تجريبي: نسخت الجدول، الصقه في Excel. التصدير لملف بيشتغل مع hunter.py.",
+      t_need_conn: "اربط واتساب الأول", t_need_smtp: "احفظ إعدادات الإيميل الأول", t_lost: "انقطع الاتصال بالباك إند",
+      l_start: "بدء الصيد: {0} كلمة × {1} دولة", l_done_demo: "اكتمل الفحص (بيانات تجريبية).", l_stopped: "تم إيقاف العملية.", l_complete: "اكتملت العملية.",
+      l_ended: "توقفت العملية.", l_lost: "انقطع الاتصال بالباك إند.", l_fail: "تعذر بدء العملية على الباك إند.", l_found: "وجد رقم {0} · {1}", l_scan: "فحص {0}",
+      a_started: "بدأت عملية صيد", a_finished: "انتهت عملية الصيد", a_finished_s: "{0} ليد في الدفعة", a_status: "تغيرت الحالة إلى {0}",
+      a_wa: "بدأ إرسال واتساب", a_wa_s: "{0} رقم", a_mail: "بدأ إرسال إيميلات", a_mail_s: "{0} إيميل", a_connected: "تم ربط واتساب",
+      a_demo: "تم فتح عرض تجريبي", a_req: "تم طلب عرض", a_created: "تم إنشاء ليد", a_first: "من البحث الأول",
+      a_marked: "تم تغيير حالة {0} ليد", tm_now: "الآن", tm_today: "اليوم", tm_yesterday: "أمس", tm_3: "قبل 3 أيام"
+    },
+    en: {
+      nav_dashboard: "Dashboard", nav_hunt: "Hunt", nav_leads: "Leads", nav_whatsapp: "WhatsApp", nav_email: "Email",
+      pg_dashboard: "Dashboard", pg_hunt: "Hunt", pg_leads: "Leads", pg_whatsapp: "WhatsApp sender", pg_email: "Email sender",
+      ps_dashboard: "A summary of the leads you hunted", ps_hunt: "Search the web and Google Maps for companies and their numbers", ps_leads: "Review, select, export to Excel and send",
+      ps_whatsapp: "Link a WhatsApp number and send messages from it", ps_email: "Connect your mailbox and send emails",
+      batch_label: "Batch", batch_all: "All batches", older: "Older leads",
+      badge_demo: "Demo · sample data", badge_live: "Connected to backend",
+      kpi_total: "Total leads", kpi_phones: "Numbers extracted", kpi_emails: "Emails", kpi_hot: "Hot leads", kpi_scanned: "Sources scanned",
+      q_hunt: "Start a new hunt", q_leads: "Open leads", q_wa: "Send WhatsApp", q_mail: "Send email",
+      source_title: "Leads by source", src_web: "Web results", src_maps: "Maps",
+      hunt_title: "Hunt setup", kw_label: "Search keywords (one query per line)", countries_label: "Countries (pick any)",
+      custom_ph: "Add another country, e.g. Jordan", add: "Add", lang_label: "Search language", lang_ar: "Arabic", lang_en: "English", lang_both: "Arabic + English",
+      sources_label: "Search sources", s_web: "Web search results", s_maps: "Maps",
+      maps_hint_duckduckgo: "Maps currently come from free DuckDuckGo (not Google Maps data). For Google Maps data itself, set GOOGLE_API_KEY (Places API) or SERPAPI_KEY before starting hunter.py.",
+      maps_hint_google_places: "Maps come from the Google Places API (usage is billed to your key).",
+      maps_hint_serpapi_google_maps: "Maps come from Google Maps through SerpAPI.",
+      maps_hint_demo: "Demo: maps run on sample data. Start hunter.py for real searches.",
+      target_label: "Numbers wanted", fields_label: "Data to extract",
+      f_phone: "Phone", f_company: "Company", f_website: "Website", f_email: "Email", f_city: "City",
+      unlimited: "Unlimited search pages", widen: "Auto-widen with related services", skipknown: "Skip numbers and sites found before",
+      mode_label: "Run as", m_web: "Website", m_win: "Windows", m_both: "Both",
+      hint_web: "Runs as a website on a server. Anyone can open the link in a browser.",
+      hint_win: "Runs as a Windows program (exe) that starts the backend on your PC.",
+      hint_both: "The same backend and dashboard run as a website and as a Windows program.",
+      run_title: "Run status", est: "≈ {0} queries available", stat_scanned: "sources scanned", stat_numbers: "numbers found", stat_emails: "emails",
+      log_ready: "Ready. Press Start hunt.", start: "Start hunt", stop: "Stop", view_results: "See results",
+      run_note: "Every hunt is saved as a new batch and its results are shown on their own; older batches stay saved. The hunt continues until it reaches the number of phones you asked for, which can take 30 minutes to 2 hours. Sites that block automation in robots.txt are skipped.",
+      history_title: "Previous batches", h_name: "Batch", h_leads: "Leads", h_scanned: "Scanned", h_view: "View", h_none: "No batches yet.",
+      del_batch: "Delete", del_confirm: "Click again to confirm",
+      tab_all: "All leads", st_new: "New", st_contacted: "Contacted", st_qualified: "Qualified", st_demo: "Demo booked", st_optout: "Do not contact",
+      search_ph: "Search companies, numbers or cities", all_countries: "All countries", all_sources: "All sources",
+      sel_all: "Select all leads ({0})", sel_clear: "Clear selection ({0})", bulk_ph: "Change status to…", apply: "Apply", copy_csv: "Copy CSV", export_xlsx: "Export Excel",
+      to_wa: "WhatsApp the selection", to_mail: "Email the selection",
+      th_company: "Company", th_phone: "Phone", th_email: "Email", th_city: "City", th_source: "Source", th_score: "Score", th_status: "Status", th_wa: "WhatsApp",
+      showing: "Showing {0} to {1} of {2}", selected: "{0} selected", zero_results: "0 results",
+      empty_table: "No matching leads. Change the filter or start a new hunt.", wa_btn: "WhatsApp", cycle_title: "Click to change status",
+      act_title: "Recent activity", kwbars_title: "Leads by search keyword", country_title: "Leads by country", hot_title: "Hot leads", hot_hint: "Score 85 or higher",
+      hot_none: "No high-score leads yet.", none_yet: "No data yet.",
+      wa_account: "WhatsApp account", wa_sending_from: "Messages will be sent from", wa_connect: "Connect WhatsApp", wa_disconnect: "Disconnect", wa_switch: "Switch number",
+      wc_off: "Not connected", wc_starting: "Opening...", wc_qr: "Waiting for QR scan", wc_connected: "Connected", wc_error: "Error",
+      wa_step1: "Press \"Connect WhatsApp\". A Chrome window opens on WhatsApp Web (leave it open).",
+      wa_step2: "On your phone open WhatsApp > Linked devices > Link a device, and scan the code shown here or in the Chrome window.",
+      wa_step3: "When your number appears here as \"Connected\", you can send. The login is remembered, so you will not scan again.",
+      wa_step4: "Want to send from another number? Press \"Switch number\" and scan a new code.",
+      wa_demo_conn: "Demo: this connection is simulated. Run hunter.py on your computer to link a real number.",
+      qr_wait: "Loading the code...", qr_idle: "The code appears here after you press \"Connect WhatsApp\"", qr_ok: "Number connected ✓", qr_scan: "Scan the code with WhatsApp on your phone",
+      wa_need_connect: "Connect a WhatsApp number first (the section above). Nothing can be sent without a connected number.",
+      sender_title: "Send messages", s_audience: "Recipients: {0}", s_msg: "Message text (use {company} and {city})",
+      s_min: "Min delay (s)", s_max: "Max delay (s)", s_cap: "Daily limit", s_batch: "Rest every (messages)", s_pause: "Rest length (minutes)",
+      s_skip: "Skip those already messaged", s_start: "Start sending", s_stop: "Stop", s_pick: "Pick recipients in Leads",
+      s_sent: "Sent", s_failed: "Failed", s_total: "Total",
+      ss_idle: "Ready to send", ss_sending: "Sending to {0}", ss_waiting: "Next message in {0} s", ss_done: "Finished ✅", ss_stopped: "Stopped",
+      ss_error: "Error: {0}", ss_daily_cap: "Daily limit reached, continue tomorrow",
+      s_note_live: "The sender sends from the connected number above, one message at a time with random delays. WhatsApp bans numbers that send bulk messages to people who do not know you, so start small from a number you can afford to lose, keep to the daily limit and the rests, and put a way to opt out in the message.",
+      s_note_demo: "This is a demo: no messages are actually sent. Run hunter.py on your computer for real sending. WhatsApp bans numbers that send bulk messages, so start small.",
+      smtp_title: "Email settings (SMTP)", mc_off: "Not set up", mc_set: "Ready", m_preset: "Mail provider", m_custom: "Custom", m_host: "SMTP server", m_port: "Port", m_sec: "Encryption",
+      m_user: "Username (email)", m_pass: "Password", m_fromname: "Sender name", m_fromemail: "Sender email (optional)", m_reply: "Reply-to (optional)",
+      m_footer: "Opt-out line (added to the end of every email)", m_save: "Save settings", m_test_ph: "Send a test to your email", m_test: "Send test",
+      m_gmail_note: "With Gmail use an App Password (Security settings, after turning on 2-step verification), not the account password. The password is stored in settings.json on your computer.",
+      m_saved: "Settings saved", m_pass_kept: "(saved, leave empty to keep it)", m_test_ok: "Test email sent, check your inbox", m_test_fail: "Test failed: {0}",
+      mail_title: "Send emails", mail_need_smtp: "Save the SMTP settings first (the section above) and send a test email.",
+      e_subject: "Subject", e_body: "Email text (use {company} and {city})", e_skip: "Skip those already emailed", e_start: "Start sending emails",
+      e_note: "Emails go out as plain text, one at a time with random delays and a daily limit, and every email ends with an opt-out line. A regular Gmail account allows about 500 messages a day. Write to companies that publish their email for business contact, and when someone asks to stop, set their status to \"Do not contact\" so they are skipped.",
+      mmail_default_subject: "An offer from Mirage E-Marketing",
+      es_idle: "Ready to send",
+      t_need_kw: "Enter at least one keyword", t_need_country: "Pick at least one country", t_need_source: "Pick at least one search source", t_phone_fixed: "Phone is required and cannot be removed",
+      t_csv: "Copied {0} leads as CSV", t_select_first: "Select leads first", t_need_msg: "Write the message first", t_need_subject: "Write the subject and text first",
+      t_no_recipients: "No suitable recipients (already sent, opted out, or no contact detail)", t_marked: "Changed the status of {0} leads",
+      t_copy_fail: "Copy failed, copy manually", t_busy: "A sending run is already active", t_pick_status: "Pick a status first", t_batch_deleted: "Batch deleted",
+      t_xlsx_ok: "Excel file downloaded ({0} leads)", t_xlsx_fail: "Export failed: {0}", t_xlsx_demo: "This is a demo: the table was copied, paste it into Excel. Exporting to a file works with hunter.py.",
+      t_need_conn: "Connect WhatsApp first", t_need_smtp: "Save the email settings first", t_lost: "Lost connection to the backend",
+      l_start: "Hunt started: {0} keywords x {1} countries", l_done_demo: "Scan finished (sample data).", l_stopped: "Run stopped.", l_complete: "Run complete.",
+      l_ended: "Run stopped.", l_lost: "Lost connection to the backend.", l_fail: "Could not start the run on the backend.", l_found: "found {0} · {1}", l_scan: "scan {0}",
+      a_started: "Hunt started", a_finished: "Hunt finished", a_finished_s: "{0} leads in the batch", a_status: "Status changed to {0}",
+      a_wa: "WhatsApp sending started", a_wa_s: "{0} numbers", a_mail: "Email sending started", a_mail_s: "{0} emails", a_connected: "WhatsApp linked",
+      a_demo: "Demo opened", a_req: "Demo requested", a_created: "Lead created", a_first: "From the first search",
+      a_marked: "Changed the status of {0} leads", tm_now: "Now", tm_today: "Today", tm_yesterday: "Yesterday", tm_3: "3 days ago"
+    }
+  };
+  var KW_DEF = {
+    ar: "شركات خدمات\nشركة تنظيف\nشركة صيانة\nشركة نقل عفش",
+    en: "service companies\ncleaning company\nmaintenance company\nmoving company"
+  };
+  var WA_DEF = {
+    ar: "السلام عليكم، معاك فريق مراج. شفنا إن {company} في {city} بتقدم خدمات مميزة، وعندنا عرض ممكن يفيدكم. تحبوا نبعتلكم التفاصيل؟ لو مش مهتمين رد بكلمة إيقاف.",
+    en: "Hello, this is the Mirage team. We noticed {company} in {city} offers great services, and we have an offer that may help. Would you like the details? Reply STOP if you are not interested."
+  };
+  var MAIL_DEF = {
+    ar: "السلام عليكم،\n\nمعاك فريق ميراج للتسويق الإلكتروني. شفنا إن {company} في {city} بتقدم خدمات مميزة، وعندنا عرض في الإعلانات والتسويق ممكن يزود عملاءكم.\n\nتحبوا نبعتلكم التفاصيل؟\n\nشكرًا،\nفريق ميراج",
+    en: "Hello,\n\nThis is the Mirage E-Marketing team. We noticed {company} in {city} offers great services, and we have an advertising and marketing offer that could bring you more customers.\n\nWould you like the details?\n\nThanks,\nThe Mirage team"
+  };
+  var FOOT_DEF = {
+    ar: "لو مش حابب توصلك رسايلنا، رد على الإيميل ده بكلمة إيقاف.",
+    en: "If you do not want to hear from us, reply to this email with STOP."
+  };
+  var lang = "ar";
+  function t(k) {
+    var s = I[lang] && I[lang][k]; if (s == null) s = I.ar[k]; if (s == null) s = k;
+    for (var i = 1; i < arguments.length; i++) s = s.replace("{" + (i - 1) + "}", arguments[i]);
+    return s;
+  }
+
+  /* ================= sample data ================= */
+  var COUNTRIES = {
+    SA: { n: "السعودية", e: "Saudi Arabia", dial: "966", pre: ["50", "55", "53"], cities: [["الرياض", "Riyadh"], ["جدة", "Jeddah"], ["الدمام", "Dammam"], ["مكة", "Makkah"]] },
+    AE: { n: "الإمارات", e: "UAE", dial: "971", pre: ["50", "52", "55"], cities: [["دبي", "Dubai"], ["أبوظبي", "Abu Dhabi"], ["الشارقة", "Sharjah"], ["عجمان", "Ajman"]] },
+    EG: { n: "مصر", e: "Egypt", dial: "20", pre: ["10", "11", "12"], cities: [["القاهرة", "Cairo"], ["الإسكندرية", "Alexandria"], ["الجيزة", "Giza"], ["المنصورة", "Mansoura"]] },
+    KW: { n: "الكويت", e: "Kuwait", dial: "965", pre: ["50", "60", "99"], cities: [["الكويت", "Kuwait City"], ["حولي", "Hawalli"], ["الفروانية", "Farwaniya"]] },
+    QA: { n: "قطر", e: "Qatar", dial: "974", pre: ["33", "55", "66"], cities: [["الدوحة", "Doha"], ["الريان", "Al Rayyan"], ["الوكرة", "Al Wakrah"]] },
+    BH: { n: "البحرين", e: "Bahrain", dial: "973", pre: ["36", "39", "34"], cities: [["المنامة", "Manama"], ["المحرق", "Muharraq"]] },
+    OM: { n: "عمان", e: "Oman", dial: "968", pre: ["91", "92", "95"], cities: [["مسقط", "Muscat"], ["صلالة", "Salalah"], ["صحار", "Sohar"]] },
+    JO: { n: "الأردن", e: "Jordan", dial: "962", pre: ["77", "78", "79"], cities: [["عمّان", "Amman"], ["إربد", "Irbid"], ["الزرقاء", "Zarqa"]] },
+    MA: { n: "المغرب", e: "Morocco", dial: "212", pre: ["61", "66", "70"], cities: [["الدار البيضاء", "Casablanca"], ["الرباط", "Rabat"], ["مراكش", "Marrakesh"]] },
+    TR: { n: "تركيا", e: "Turkey", dial: "90", pre: ["532", "533", "535"], cities: [["إسطنبول", "Istanbul"], ["أنقرة", "Ankara"], ["إزمير", "Izmir"]] },
+    GB: { n: "بريطانيا", e: "United Kingdom", dial: "44", pre: ["7400", "7500"], cities: [["لندن", "London"], ["مانشستر", "Manchester"], ["برمنغهام", "Birmingham"]] }
+  };
+  var PALETTE = ["#4fd8ff", "#3b7bff", "#7a5cff", "#34d399", "#fbbf24", "#fb7185", "#94a3d8"];
+  var BASES = [
+    ["النخبة للتنظيف", "Elite Cleaning", "nokhba-clean"], ["الأفق للصيانة", "Horizon Maintenance", "ofoq-fix"], ["رواد النقل", "Pioneer Movers", "rowad-move"],
+    ["بيت الخبرة", "House of Expertise", "khebra-home"], ["المدار للخدمات", "Orbit Services", "madar-svc"], ["الصفوة للمقاولات", "Elite Contracting", "safwa-build"],
+    ["دار الإتقان", "Mastery House", "itqan-co"], ["سما للتكييف", "Sama Air Conditioning", "sama-ac"], ["الواحة للحدائق", "Oasis Gardens", "waha-garden"],
+    ["نجمة الخليج", "Gulf Star", "najma-gulf"], ["الركن الذهبي", "Golden Corner", "golden-corner"], ["بنيان للتشطيبات", "Bonyan Finishing", "bonyan-finish"],
+    ["المنار للأمن", "Manar Security", "manar-secure"], ["الريادة للاستشارات", "Leadership Consulting", "riyada-consult"], ["أمواج للمكافحة", "Amwaj Pest Control", "amwaj-pest"],
+    ["الجسر للشحن", "Bridge Cargo", "jisr-cargo"]
+  ];
+  var ORDER = ["new", "contacted", "qualified", "demo", "optout"];
+  var FIELDS = ["phone", "company", "website", "email", "city"];
+  var PAGES = ["dashboard", "hunt", "leads", "whatsapp", "email"];
+
+  var rnd = function (n) { return Math.floor(Math.random() * n); };
+  var pick = function (a) { return a[rnd(a.length)]; };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var $ = function (id) { return document.getElementById(id); };
+  var digits = function (p) { return String(p).replace(/\D/g, ""); };
+  var pad2 = function (n) { return (n < 10 ? "0" : "") + n; };
+  function stamp(codes) { var d = new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + " | " + codes.join(", "); }
+  function jpost(url, body) { return fetch(state.api + url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) }); }
+
+  var state = {
+    leads: [], batches: [], batchSel: "all", batchSeq: 1, tab: "all", q: "", fCountry: "all", fSource: "all", page: 1, per: 25, pg: "dashboard",
+    sel: new Set(), chosen: new Set(["SA", "AE"]), fields: new Set(FIELDS), sources: new Set(["web", "maps"]), mode: "both", running: false, timer: null, nextId: 1,
+    activity: [], live: false, api: "", jobId: null, curBatch: null, delArm: null, mapsEngine: "",
+    wa: { conn: "off", account: "", qr: "", note: "", status: "idle", sent: 0, failed: 0, total: 0, current: "", nextAt: 0, snote: "", log: [], since: 0, running: false, timer: null },
+    mail: { cfg: {}, hasPass: false, status: "idle", sent: 0, failed: 0, total: 0, current: "", nextAt: 0, note: "", log: [], since: 0, running: false, timer: null }
+  };
+
+  function mkLead(code, kw, batch) {
+    var c = COUNTRIES[code] || { n: code, e: code, dial: "···", pre: ["00"], cities: [[code, code]] };
+    var b = pick(BASES), city = pick(c.cities);
+    var d = String(rnd(10000)); while (d.length < 4) d = "0" + d;
+    var dom = b[2] + "-" + code.toLowerCase() + rnd(90) + ".example";
+    return {
+      id: state.nextId++, company: b[0], companyEn: b[1], phone: "+" + c.dial + " " + pick(c.pre) + " 000 " + d,
+      email: Math.random() > 0.3 ? "info@" + dom : "", website: dom, city: city[0], cityEn: city[1], country: code,
+      score: 40 + rnd(59), status: "new", kw: kw, batch: batch, source: Math.random() > 0.55 ? "maps" : "web"
+    };
+  }
+  function seed() {
+    state.batches = [{ id: 1, name: "2026-11-07 20:23 | SA, AE", scanned: 214 }]; state.batchSeq = 1; state.batchSel = 1;
+    var kws = ["شركات خدمات", "شركة تنظيف", "شركة صيانة", "شركة نقل عفش"], codes = ["SA", "AE", "SA", "AE", "EG", "SA", "AE", "KW", "SA", "AE", "QA", "SA"];
+    codes.forEach(function (c, i) { var l = mkLead(c, kws[i % 4], 1); if (i < 3) l.score = 86 + i * 4; l.status = ORDER[i % 4]; state.leads.push(l); });
+    state.activity = [
+      { tm: "tm_today", m: "a_demo", s: "Elite Cleaning" }, { tm: "tm_yesterday", m: "a_req", s: "Horizon Maintenance" }, { tm: "tm_3", m: "a_created", sk: "a_first" }
+    ];
+  }
+
+  /* ================= helpers ================= */
+  var tt;
+  function toast(m) { var el = $("toast"); el.textContent = m; el.hidden = false; clearTimeout(tt); tt = setTimeout(function () { el.hidden = true; }, 3200); }
+  function addAct(m, ma, s, sc, sk, sa) { state.activity.unshift({ tm: "tm_now", m: m, ma: ma || [], s: s || "", sc: sc || null, sk: sk || null, sa: sa || [] }); state.activity = state.activity.slice(0, 5); renderActivity(); }
+  var cname = function (c) { var x = COUNTRIES[c]; return x ? (lang === "en" ? x.e : x.n) : c; };
+  var coName = function (l) { return lang === "en" && l.companyEn ? l.companyEn : l.company; };
+  var cityName = function (l) { return lang === "en" && l.cityEn ? l.cityEn : l.city; };
+  var stLabel = function (s) { return t("st_" + s); };
+  function batchOf(id) { return state.batches.filter(function (b) { return b.id === id; })[0]; }
+  function vis() { return state.batchSel === "all" ? state.leads : state.leads.filter(function (l) { return l.batch === state.batchSel; }); }
+  function filtered() {
+    var q = state.q.trim().toLowerCase();
+    return vis().filter(function (l) {
+      if (state.tab !== "all" && l.status !== state.tab) return false;
+      if (state.fCountry !== "all" && l.country !== state.fCountry) return false;
+      if (state.fSource !== "all" && (l.source || "web") !== state.fSource) return false;
+      if (q && (l.company + " " + (l.companyEn || "") + " " + l.phone + " " + l.email + " " + l.city + " " + l.website).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }
+  function sidOf(l) { return l.sid || l.id; }
+  function setStatus(list, status) {
+    list.forEach(function (x) { x.status = status; });
+    if (state.live && list.length) jpost("/api/leads/bulk", { ids: list.map(sidOf), status: status }).catch(function () {});
+  }
+  function copy(text, okMsg) {
+    var done = function () { toast(okMsg); };
+    var fallback = function () { var ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); done(); } catch (e) { toast(t("t_copy_fail")); } ta.remove(); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  }
+  function audience(kind) {
+    var base = state.sel.size ? state.leads.filter(function (l) { return state.sel.has(l.id); }) : filtered();
+    if (kind === "wa") { var s1 = $("waSkip").checked; return base.filter(function (l) { return l.phone && l.status !== "optout" && !(s1 && l.status === "contacted"); }); }
+    return base.filter(function (l) { return l.email && l.status !== "optout"; });
+  }
+
+  /* ================= render: dashboard ================= */
+  function renderKpis() {
+    var L = vis(), ph = L.filter(function (l) { return l.phone; }).length, em = L.filter(function (l) { return l.email; }).length;
+    var hot = L.filter(function (l) { return l.score >= 85; }).length, scanned = 0;
+    if (state.batchSel === "all") state.batches.forEach(function (b) { scanned += b.scanned || 0; }); else { var b = batchOf(state.batchSel); scanned = b ? b.scanned || 0 : 0; }
+    var items = [[t("kpi_total"), L.length], [t("kpi_phones"), ph], [t("kpi_emails"), em], [t("kpi_hot"), hot], [t("kpi_scanned"), scanned]];
+    $("kpis").innerHTML = items.map(function (i) { return '<div class="glass kpi"><div class="l">' + esc(i[0]) + '</div><div class="v">' + i[1].toLocaleString("en-US") + "</div></div>"; }).join("");
+    $("stPhone").textContent = ph; $("stEmail").textContent = em; $("stScan").textContent = scanned.toLocaleString("en-US");
+  }
+  function renderDonut() {
+    var L = vis(), by = {}; L.forEach(function (l) { by[l.country] = (by[l.country] || 0) + 1; });
+    var arr = Object.keys(by).map(function (k) { return [k, by[k]]; }).sort(function (a, b) { return b[1] - a[1]; });
+    var tot = L.length || 1, r = 46, C = 2 * Math.PI * r, off = 0, svg = '<circle cx="60" cy="60" r="' + r + '" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="13"/>';
+    arr.forEach(function (a, i) {
+      var len = a[1] / tot * C;
+      svg += '<circle cx="60" cy="60" r="' + r + '" fill="none" stroke="' + PALETTE[i % PALETTE.length] + '" stroke-width="13" stroke-dasharray="' + Math.max(len - 1.5, 0.5) + " " + C + '" stroke-dashoffset="' + (-off) + '"/>';
+      off += len;
+    });
+    $("donut").innerHTML = svg;
+    $("dPct").textContent = arr.length ? Math.round(arr[0][1] / tot * 100) + "%" : "0%";
+    $("dName").textContent = arr.length ? cname(arr[0][0]) : "";
+    $("legend").innerHTML = arr.slice(0, 6).map(function (a, i) { return '<li><i style="background:' + PALETTE[i % PALETTE.length] + '"></i>' + esc(cname(a[0])) + "<em>" + Math.round(a[1] / tot * 100) + "%</em></li>"; }).join("");
+  }
+  function renderHot() {
+    var h = vis().filter(function (l) { return l.score >= 85; }).sort(function (a, b) { return b.score - a.score; }).slice(0, 6);
+    $("hot").innerHTML = h.length ? h.map(function (l) {
+      return '<div class="hot-i"><b>' + esc(coName(l)) + '</b><b class="mono">' + l.score + "</b><small>" + esc(cityName(l)) + " · " + esc(cname(l.country)) + '</small><small class="ltr mono">' + esc(l.phone) + '</small><div class="bar"><i style="width:' + l.score + '%"></i></div></div>';
+    }).join("") : '<div class="muted">' + esc(t("hot_none")) + "</div>";
+  }
+  function bars(el, arr, label) {
+    var max = arr.length ? arr[0][1] : 1;
+    el.innerHTML = arr.length ? arr.map(function (a) { return '<div class="kw-i"><span>' + esc(label ? label(a[0]) : a[0]) + "</span><span>" + a[1] + '</span><div class="bar"><i style="width:' + Math.round(a[1] / max * 100) + '%"></i></div></div>'; }).join("") : '<div class="muted">' + esc(t("none_yet")) + "</div>";
+  }
+  function renderKw() {
+    var by = {}, bs = {}; vis().forEach(function (l) { by[l.kw] = (by[l.kw] || 0) + 1; var s = l.source || "web"; bs[s] = (bs[s] || 0) + 1; });
+    var srt = function (o) { return Object.keys(o).map(function (k) { return [k, o[k]]; }).sort(function (a, b) { return b[1] - a[1]; }); };
+    bars($("kwBars"), srt(by).slice(0, 5)); bars($("srcBars"), srt(bs), function (k) { return t("src_" + k); });
+  }
+  function renderActivity() {
+    $("tl").innerHTML = state.activity.map(function (a) {
+      var sub = a.sc ? a.sc.map(cname).join(", ") : (a.sk ? t.apply(null, [a.sk].concat(a.sa || [])) : a.s);
+      var args = (a.ma || []).map(function (x) { return typeof x === "string" && x.charAt(0) === "@" ? t(x.slice(1)) : x; });
+      return "<li><div><b>" + esc(t(a.tm)) + "</b> · " + esc(t.apply(null, [a.m].concat(args))) + (sub ? "<small>" + esc(sub) + "</small>" : "") + "</div></li>";
+    }).join("");
+  }
+
+  /* ================= render: hunt ================= */
+  function renderChips() {
+    $("countryChips").innerHTML = Object.keys(COUNTRIES).map(function (c) { return '<button type="button" class="chip" data-c="' + c + '" aria-pressed="' + state.chosen.has(c) + '">' + esc(cname(c)) + "</button>"; }).join("");
+    $("fieldChips").innerHTML = FIELDS.map(function (f) { return '<button type="button" class="chip" data-f="' + f + '" aria-pressed="' + state.fields.has(f) + '">' + esc(t("f_" + f)) + "</button>"; }).join("");
+    $("sourceChips").innerHTML = ["web", "maps"].map(function (s) { return '<button type="button" class="chip" data-src="' + s + '" aria-pressed="' + state.sources.has(s) + '">' + esc(t("s_" + s)) + "</button>"; }).join("");
+    $("mapsHint").textContent = state.sources.has("maps") ? (state.live ? t("maps_hint_" + (state.mapsEngine || "duckduckgo")) : t("maps_hint_demo")) : "";
+    var kws = $("kw").value.split("\n").filter(function (x) { return x.trim(); }).length + ($("widen").checked ? 25 : 0), cities = 0;
+    state.chosen.forEach(function (c) { cities += COUNTRIES[c].cities.length * 3; });
+    $("queryEst").textContent = t("est", (kws * cities * (state.sources.has("web") ? 8 : 1) * (state.sources.size || 1)).toLocaleString("en-US"));
+    $("modeHint").textContent = t("hint_" + state.mode);
+    Array.prototype.forEach.call($("modeSeg").children, function (b) { b.setAttribute("aria-pressed", String(b.dataset.m === state.mode)); });
+  }
+  function renderHistory() {
+    var arr = state.batches.slice().sort(function (a, b) { return b.id - a.id; });
+    $("histBody").innerHTML = arr.length ? arr.map(function (b) {
+      var n = state.leads.filter(function (l) { return l.batch === b.id; }).length;
+      return "<tr><td class=\"mono\">" + (b.id === 0 ? "—" : b.id) + "</td><td>" + esc(b.id === 0 ? t("older") : b.name) + '</td><td class="mono">' + n + '</td><td class="mono">' + (b.scanned || 0) +
+        '</td><td><div class="btns"><button class="btn sm" data-viewb="' + b.id + '">' + esc(t("h_view")) + '</button><button class="btn sm danger" data-delb="' + b.id + '">' + esc(state.delArm === b.id ? t("del_confirm") : t("del_batch")) + "</button></div></td></tr>";
+    }).join("") : '<tr><td colspan="5" class="empty">' + esc(t("h_none")) + "</td></tr>";
+  }
+
+  /* ================= render: leads ================= */
+  function renderTabs() {
+    var L = vis(), cnt = function (s) { return L.filter(function (l) { return l.status === s; }).length; };
+    var arr = [["all", t("tab_all"), L.length]].concat(ORDER.map(function (s) { return [s, stLabel(s), cnt(s)]; }));
+    $("tabs").innerHTML = arr.map(function (x) { return '<button class="tab" role="tab" data-tab="' + x[0] + '" aria-selected="' + (state.tab === x[0]) + '">' + esc(x[1]) + " (" + x[2] + ")</button>"; }).join("");
+  }
+  function renderSelects() {
+    var set = {}; vis().forEach(function (l) { set[l.country] = 1; });
+    if (state.fCountry !== "all" && !set[state.fCountry]) state.fCountry = "all";
+    $("fCountry").innerHTML = '<option value="all">' + esc(t("all_countries")) + "</option>" + Object.keys(set).map(function (c) { return '<option value="' + c + '"' + (state.fCountry === c ? " selected" : "") + ">" + esc(cname(c)) + "</option>"; }).join("");
+    $("fSource").innerHTML = '<option value="all">' + esc(t("all_sources")) + '</option><option value="web"' + (state.fSource === "web" ? " selected" : "") + ">" + esc(t("src_web")) + '</option><option value="maps"' + (state.fSource === "maps" ? " selected" : "") + ">" + esc(t("src_maps")) + "</option>";
+    var opts = '<option value="all"' + (state.batchSel === "all" ? " selected" : "") + ">" + esc(t("batch_all")) + " (" + state.leads.length + ")</option>";
+    state.batches.slice().sort(function (a, b) { return b.id - a.id; }).forEach(function (b) {
+      var n = state.leads.filter(function (l) { return l.batch === b.id; }).length;
+      opts += '<option value="' + b.id + '"' + (state.batchSel === b.id ? " selected" : "") + ">" + (b.id === 0 ? esc(t("older")) : "#" + b.id + " · " + esc(b.name)) + " (" + n + ")</option>";
+    });
+    $("fBatch").innerHTML = opts;
+    $("bulkStatus").innerHTML = '<option value="">' + esc(t("bulk_ph")) + "</option>" + ORDER.map(function (s) { return '<option value="' + s + '">' + esc(stLabel(s)) + "</option>"; }).join("");
+  }
+  function pagerHtml(pages, cur) {
+    var set = {}; set[1] = 1; set[pages] = 1;
+    for (var i = cur - 2; i <= cur + 2; i++) if (i >= 1 && i <= pages) set[i] = 1;
+    var arr = Object.keys(set).map(Number).sort(function (a, b) { return a - b; }), out = "", prev = 0;
+    arr.forEach(function (i) {
+      if (prev && i - prev > 1) out += '<span class="muted">…</span>';
+      out += '<button data-page="' + i + '"' + (i === cur ? ' aria-current="true"' : "") + ">" + i + "</button>"; prev = i;
+    });
+    return out;
+  }
+  function renderTable() {
+    var list = filtered(), pages = Math.max(1, Math.ceil(list.length / state.per));
+    if (state.page > pages) state.page = pages;
+    var from = (state.page - 1) * state.per, view = list.slice(from, from + state.per);
+    $("tbody").innerHTML = view.length ? view.map(function (l) {
+      var on = state.sel.has(l.id), nm = coName(l), src = l.source || "web";
+      return '<tr class="' + (on ? "sel" : "") + '">' +
+        '<td><input type="checkbox" data-sel="' + l.id + '" aria-label="' + esc(nm) + '"' + (on ? " checked" : "") + "></td>" +
+        '<td><div class="co"><div class="av">' + esc(Array.from(nm)[0] || "?") + "</div><div>" + esc(nm) + '<small class="ltr mono">' + esc(l.website || "") + "</small></div></div></td>" +
+        '<td><span class="ltr mono">' + esc(l.phone) + "</span></td>" +
+        "<td>" + (l.email ? '<span class="ltr mono">' + esc(l.email) + "</span>" : '<span class="muted">—</span>') + "</td>" +
+        "<td>" + esc(cityName(l)) + ' <span class="muted">· ' + esc(cname(l.country)) + "</span></td>" +
+        '<td><span class="src ' + src + '">' + esc(t("src_" + src)) + "</span></td>" +
+        '<td><div class="score"><b>' + l.score + '</b><div class="bar"><i style="width:' + l.score + '%"></i></div></div></td>' +
+        '<td><button class="pill s-' + l.status + '" data-cycle="' + l.id + '" title="' + esc(t("cycle_title")) + '">' + esc(stLabel(l.status)) + "</button></td>" +
+        '<td><a class="btn wa sm" target="_blank" rel="noopener" href="https://wa.me/' + digits(l.phone) + '">' + esc(t("wa_btn")) + "</a></td></tr>";
+    }).join("") : '<tr><td colspan="9" class="empty">' + esc(t("empty_table")) + "</td></tr>";
+    $("count").textContent = (list.length ? t("showing", from + 1, from + view.length, list.length) : t("zero_results")) + (state.sel.size ? " · " + t("selected", state.sel.size) : "");
+    $("pager").innerHTML = pagerHtml(pages, state.page);
+    var all = list.length && list.every(function (l) { return state.sel.has(l.id); });
+    $("selAll").textContent = all ? t("sel_clear", list.length) : t("sel_all", list.length);
+  }
+
+  /* ================= render: WhatsApp ================= */
+  function renderWa() {
+    var w = state.wa;
+    var pill = $("waConn"); pill.className = "cpill c-" + w.conn; pill.textContent = t("wc_" + w.conn);
+    $("waAcctRow").hidden = !(w.conn === "connected" && w.account); $("waAcct").textContent = w.account ? "+" + w.account : "";
+    $("waSteps").innerHTML = [1, 2, 3, 4].map(function (i) { return "<li>" + esc(t("wa_step" + i)) + "</li>"; }).join("");
+    var q = $("waQr");
+    if (w.conn === "qr" && w.qr) q.innerHTML = '<div><img alt="QR" src="' + esc(w.qr) + '"><div>' + esc(t("qr_scan")) + "</div></div>";
+    else if (w.conn === "starting") q.textContent = t("qr_wait");
+    else if (w.conn === "connected") q.textContent = t("qr_ok");
+    else q.textContent = t("qr_idle");
+    $("waErr").textContent = w.conn === "error" || (w.conn === "off" && w.note) ? w.note : (!state.live ? t("wa_demo_conn") : "");
+    $("waConnect").disabled = ["starting", "qr", "connected"].indexOf(w.conn) >= 0;
+    $("waDisc").disabled = w.conn === "off"; $("waSwitch").disabled = w.conn === "off";
+    var ok = w.conn === "connected";
+    $("waLockMsg").hidden = ok; $("waForm").classList.toggle("lock", !ok);
+    $("waAudience").textContent = t("s_audience", audience("wa").length);
+    $("waSent").textContent = w.sent; $("waFailed").textContent = w.failed; $("waTotal").textContent = w.total;
+    $("waFill").style.width = (w.total ? (w.sent + w.failed) / w.total * 100 : 0) + "%";
+    var arg = w.status === "waiting" ? Math.max(0, Math.ceil((w.nextAt - Date.now()) / 1000)) : (w.status === "error" ? w.snote : w.current);
+    $("waStatus").textContent = t("ss_" + w.status, arg);
+    var lg = $("waLog"); lg.innerHTML = "";
+    w.log.slice(-5).forEach(function (e) { var d = document.createElement("div"); d.className = e.ok ? "ok" : "bad"; d.textContent = e.phone + " · " + (e.ok ? "sent" : "failed" + (e.note ? " (" + e.note + ")" : "")); lg.appendChild(d); });
+    $("waStart").disabled = w.running || !ok; $("waStop").disabled = !w.running;
+    $("waNote").textContent = t(state.live ? "s_note_live" : "s_note_demo");
+  }
+
+  /* ================= render: Email ================= */
+  function renderMail() {
+    var m = state.mail, ready = m.hasPass && !!m.cfg.host && !!m.cfg.user;
+    var pill = $("mailConn"); pill.className = "cpill " + (ready ? "c-connected" : "c-off"); pill.textContent = t(ready ? "mc_set" : "mc_off");
+    $("mailLockMsg").hidden = ready; $("mailForm").classList.toggle("lock", !ready);
+    $("mPass").placeholder = m.hasPass ? t("m_pass_kept") : "";
+    $("mailAudience").textContent = t("s_audience", audience("mail").length);
+    $("mSent").textContent = m.sent; $("mFailed").textContent = m.failed; $("mTotal").textContent = m.total;
+    $("mFill").style.width = (m.total ? (m.sent + m.failed) / m.total * 100 : 0) + "%";
+    var arg = m.status === "waiting" ? Math.max(0, Math.ceil((m.nextAt - Date.now()) / 1000)) : (m.status === "error" ? m.note : m.current);
+    $("mStatus").textContent = t(m.status === "idle" ? "es_idle" : "ss_" + m.status, arg);
+    var lg = $("mLog"); lg.innerHTML = "";
+    m.log.slice(-5).forEach(function (e) { var d = document.createElement("div"); d.className = e.ok ? "ok" : "bad"; d.textContent = e.email + " · " + (e.ok ? "sent" : "failed" + (e.note ? " (" + e.note + ")" : "")); lg.appendChild(d); });
+    $("mStart").disabled = m.running || !ready; $("mStop").disabled = !m.running;
+  }
+
+  function renderData() { renderKpis(); renderTabs(); renderSelects(); renderTable(); renderDonut(); renderHot(); renderKw(); renderHistory(); renderWa(); renderMail(); }
+  function renderAll() { renderData(); renderActivity(); renderChips(); route(); }
+
+  /* ================= router + language ================= */
+  function route() {
+    var h = (location.hash || "").replace("#", ""); if (PAGES.indexOf(h) < 0) h = "dashboard";
+    state.pg = h;
+    PAGES.forEach(function (p) { $("p-" + p).hidden = p !== h; });
+    Array.prototype.forEach.call(document.querySelectorAll(".nav a"), function (a) { if (a.dataset.pg === h) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    $("pgTitle").textContent = t("pg_" + h); $("pgSub").textContent = t("ps_" + h);
+    $("batchBox").hidden = h === "hunt";
+    renderMail(); renderWa();
+  }
+  function applyLang(next) {
+    var prev = lang; lang = next;
+    document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) { el.textContent = t(el.dataset.i18n); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-ph]"), function (el) { el.placeholder = t(el.dataset.ph); });
+    [["kw", KW_DEF], ["waText", WA_DEF], ["mBody", MAIL_DEF], ["mFooter", FOOT_DEF]].forEach(function (p) { var el = $(p[0]); if (!el.value || el.value === p[1][prev]) el.value = p[1][lang]; });
+    if (!$("mSubject").value || $("mSubject").value === I[prev].mmail_default_subject) $("mSubject").value = t("mmail_default_subject");
+    $("langBtn").textContent = lang === "ar" ? "English" : "العربية";
+    $("modeBadge").textContent = t(state.live ? "badge_live" : "badge_demo");
+    if (!state.running) { $("log").innerHTML = ""; var d = document.createElement("div"); d.textContent = t("log_ready"); $("log").appendChild(d); }
+    try { localStorage.setItem("mirage-lang", lang); } catch (e) {}
+    renderAll();
+  }
+
+  /* ================= export ================= */
+  function exportSource() { return state.sel.size ? state.leads.filter(function (l) { return state.sel.has(l.id); }) : filtered(); }
+  function csv() {
+    var src = exportSource(), cols = FIELDS.filter(function (f) { return state.fields.has(f); });
+    var rows = [cols.concat(["country", "source", "score", "status"]).join(",")];
+    src.forEach(function (l) { rows.push(cols.map(function (c) { return '"' + String(l[c] || "").replace(/"/g, '""') + '"'; }).concat([cname(l.country), l.source || "web", l.score, l.status]).join(",")); });
+    return { text: rows.join("\n"), n: src.length };
+  }
+  function exportXlsx() {
+    var src = exportSource(); if (!src.length) return toast(t("zero_results"));
+    if (!state.live) { var r = src.map(function (l) { return [coName(l), l.phone, l.email, l.website, cityName(l), cname(l.country), l.score, stLabel(l.status), l.source || "web"].join("\t"); }); return copy(r.join("\n"), t("t_xlsx_demo")); }
+    jpost("/api/export.xlsx", { ids: src.map(sidOf), lang: lang }).then(function (r) {
+      if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || r.status); });
+      return r.blob();
+    }).then(function (b) {
+      var a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "mirage-leads.xlsx"; document.body.appendChild(a); a.click(); a.remove();
+      toast(t("t_xlsx_ok", src.length));
+    }).catch(function (e) { toast(t("t_xlsx_fail", e.message)); });
+  }
+
+  /* ================= hunt ================= */
+  function logLine(text, cls) { var el = document.createElement("div"); if (cls) el.className = cls; el.textContent = text; var lg = $("log"); lg.appendChild(el); while (lg.children.length > 5) lg.removeChild(lg.firstChild); }
+  function setProgress(p) { $("pbi").style.width = p + "%"; $("pb").setAttribute("aria-valuenow", Math.round(p)); }
+  function finish(msg) {
+    state.running = false; clearInterval(state.timer); $("startBtn").disabled = false; $("stopBtn").disabled = true;
+    logLine(msg, "ok"); renderData();
+    var n = state.leads.filter(function (l) { return l.batch === state.curBatch; }).length;
+    addAct("a_finished", [], "", null, "a_finished_s", [n]);
+  }
+  function newBatch(id, codes) { var b = { id: id, name: stamp(codes), scanned: 0 }; state.batches.push(b); state.batchSel = id; state.curBatch = id; state.sel.clear(); state.page = 1; state.tab = "all"; state.fCountry = "all"; state.fSource = "all"; return b; }
+  function startDemo(target, kws, codes) {
+    var b = newBatch(++state.batchSeq, codes), step = Math.max(8, Math.round(target / 70)), done = 0, cap = Math.min(70, Math.round(target / 12));
+    state.timer = setInterval(function () {
+      done = Math.min(target, done + step); b.scanned = done;
+      var code = pick(codes), kw = pick(kws);
+      logLine(t("l_scan", pick(BASES)[2] + "-" + code.toLowerCase() + rnd(90) + ".example"), "");
+      if (cap > 0 && Math.random() < 0.6) { var l = mkLead(code, kw, b.id); l.source = state.sources.has("maps") && (!state.sources.has("web") || Math.random() > 0.5) ? "maps" : "web"; state.leads.unshift(l); cap--; logLine(t("l_found", l.phone, coName(l)), "ok"); }
+      setProgress(done / target * 100); renderData();
+      if (done >= target) finish(t("l_done_demo"));
+    }, 130);
+  }
+  function startLive(target, kws, codes) {
+    var custom = {}; codes.forEach(function (c) { if (c.charAt(0) === "X") custom[c] = COUNTRIES[c].n; });
+    var body = { keywords: kws, countries: codes, custom: custom, sources: Array.from(state.sources), lang: $("lang").value, target: target, widen: $("widen").checked, skip_known: $("skipKnown").checked, unlimited_pages: $("unlimited").checked, fields: Array.from(state.fields) };
+    jpost("/api/jobs", body).then(function (r) { return r.json(); })
+      .then(function (j) {
+        state.jobId = j.id; var b = newBatch(j.batch, codes), since = 0; renderData();
+        state.timer = setInterval(function () {
+          fetch(state.api + "/api/jobs/" + j.id + "?since=" + since).then(function (r) { return r.json(); }).then(function (s) {
+            since = s.next;
+            (s.leads || []).forEach(function (l) { l.sid = l.id; l.id = state.nextId++; state.leads.unshift(l); });
+            (s.log || []).forEach(function (x) { logLine(x, ""); });
+            b.scanned = s.scanned; setProgress(Math.min(100, (s.found || 0) / target * 100)); renderData();
+            if (s.status !== "running") finish(s.status === "done" ? t("l_complete") : t("l_ended"));
+          }).catch(function () { finish(t("l_lost")); });
+        }, 1200);
+      }).catch(function () { finish(t("l_fail")); });
+  }
+  function start() {
+    var kws = $("kw").value.split("\n").map(function (x) { return x.trim(); }).filter(Boolean), codes = Array.from(state.chosen);
+    if (!kws.length) return toast(t("t_need_kw"));
+    if (!codes.length) return toast(t("t_need_country"));
+    if (!state.sources.size) return toast(t("t_need_source"));
+    var target = Math.max(10, parseInt($("maxSites").value, 10) || 1000);
+    state.running = true; $("startBtn").disabled = true; $("stopBtn").disabled = false; setProgress(0);
+    $("log").innerHTML = ""; logLine(t("l_start", kws.length, codes.length), "ok");
+    addAct("a_started", [], "", codes);
+    if (state.live) startLive(target, kws, codes); else startDemo(target, kws, codes);
+  }
+
+  /* ================= WhatsApp account + sender ================= */
+  function waMarkSent(phone) { state.leads.forEach(function (l) { if (digits(l.phone) === String(phone) && l.status === "new") l.status = "contacted"; }); }
+  function waConnect() {
+    var w = state.wa;
+    if (state.live) { w.conn = "starting"; w.note = ""; renderWa(); jpost("/api/wa/connect").catch(function () { w.conn = "error"; w.note = t("t_lost"); renderWa(); }); return; }
+    w.conn = "starting"; renderWa();
+    setTimeout(function () { w.conn = "connected"; w.account = "201000000000"; addAct("a_connected", [], "+" + w.account); renderData(); }, 1600);
+  }
+  function waDisconnect(logout) {
+    var w = state.wa;
+    if (state.live) jpost(logout ? "/api/wa/logout" : "/api/wa/disconnect").catch(function () {});
+    clearInterval(w.timer); w.running = false; w.conn = "off"; w.account = ""; w.qr = ""; w.status = "idle"; renderWa();
+  }
+  function waStart() {
+    var w = state.wa;
+    if (w.running) return toast(t("t_busy"));
+    if (w.conn !== "connected") return toast(t("t_need_conn"));
+    var msg = $("waText").value.trim(), list = audience("wa");
+    if (!msg) return toast(t("t_need_msg"));
+    if (!list.length) return toast(t("t_no_recipients"));
+    w.running = true; w.sent = 0; w.failed = 0; w.total = list.length; w.status = "sending"; w.log = []; w.since = 0; w.current = ""; w.snote = "";
+    addAct("a_wa", [], "", null, "a_wa_s", [list.length]); renderWa();
+    if (state.live) {
+      jpost("/api/wa/start", { ids: list.map(sidOf), message: msg, min_delay: +$("waMin").value, max_delay: +$("waMax").value, daily_cap: +$("waCap").value, batch_size: +$("waBatch").value, batch_pause: +$("waPause").value })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) { if (!res.ok) { w.running = false; w.status = "idle"; renderWa(); toast(res.j.error === "not_connected" ? t("t_need_conn") : res.j.error === "busy" ? t("t_busy") : t("t_no_recipients")); } })
+        .catch(function () { w.running = false; w.status = "error"; w.snote = t("t_lost"); renderWa(); });
+    } else {
+      var i = 0; clearInterval(w.timer);
+      w.timer = setInterval(function () {
+        if (i >= list.length) { w.status = "done"; w.running = false; clearInterval(w.timer); renderData(); return; }
+        var l = list[i++], ok = Math.random() > 0.08; w.current = l.phone;
+        if (ok) { w.sent++; if (l.status === "new") l.status = "contacted"; } else w.failed++;
+        w.log.push({ phone: digits(l.phone), ok: ok, note: ok ? "" : "number not on WhatsApp" }); w.status = "sending"; renderData();
+      }, 500);
+    }
+  }
+  function waStop() { var w = state.wa; if (state.live) jpost("/api/wa/stop").catch(function () {}); else { w.status = "stopped"; w.running = false; clearInterval(w.timer); } renderWa(); }
+  function waPoll() {
+    if (!state.live) return;
+    var w = state.wa;
+    fetch(state.api + "/api/wa/state?since=" + w.since).then(function (r) { return r.json(); }).then(function (s) {
+      w.conn = s.conn; w.account = s.account || ""; w.qr = s.qr || ""; w.note = s.note || "";
+      w.status = s.status; w.sent = s.sent; w.failed = s.failed; w.total = s.total; w.current = s.current; w.snote = s.snote || "";
+      w.nextAt = Date.now() + (s.next_in || 0) * 1000; w.since = s.next; w.running = s.status === "sending" || s.status === "waiting";
+      var changed = false;
+      (s.entries || []).forEach(function (e) { w.log.push(e); if (e.ok) { waMarkSent(e.phone); changed = true; } });
+      if (changed) renderData(); else renderWa();
+    }).catch(function () {});
+  }
+
+  /* ================= Email settings + sender ================= */
+  function readMailForm() {
+    return { host: $("mHost").value.trim(), port: +$("mPort").value || 587, security: $("mSec").value, user: $("mUser").value.trim(), password: $("mPass").value,
+      from_name: $("mFromName").value.trim(), from_email: $("mFromEmail").value.trim(), reply_to: $("mReply").value.trim(), footer: $("mFooter").value.trim() };
+  }
+  function fillMailForm(c) {
+    if (c.host != null) $("mHost").value = c.host; if (c.port) $("mPort").value = c.port; if (c.security) $("mSec").value = c.security;
+    if (c.user != null) $("mUser").value = c.user; if (c.from_name != null) $("mFromName").value = c.from_name;
+    if (c.from_email != null) $("mFromEmail").value = c.from_email; if (c.reply_to != null) $("mReply").value = c.reply_to;
+    if (c.footer) $("mFooter").value = c.footer;
+  }
+  function saveMail() {
+    var c = readMailForm(), m = state.mail;
+    if (c.footer === "") { c.footer = FOOT_DEF[lang]; $("mFooter").value = c.footer; }
+    if (!state.live) { m.cfg = c; m.hasPass = m.hasPass || !!c.password; $("mPass").value = ""; $("mMsg").textContent = t("m_saved"); renderMail(); return; }
+    jpost("/api/email/settings", c).then(function (r) { return r.json(); }).then(function (j) {
+      m.cfg = j.settings; m.hasPass = !!j.settings.has_password; $("mPass").value = ""; $("mMsg").textContent = t("m_saved"); renderMail();
+    }).catch(function () { $("mMsg").textContent = t("t_lost"); });
+  }
+  function testMail() {
+    var to = $("mTestTo").value.trim();
+    if (!state.live) { $("mMsg").textContent = t("m_test_ok") + " (demo)"; return; }
+    $("mMsg").textContent = "...";
+    jpost("/api/email/test", { to: to }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); }).then(function (res) {
+      $("mMsg").textContent = res.ok ? t("m_test_ok") : t("m_test_fail", res.j.error || "");
+    }).catch(function () { $("mMsg").textContent = t("t_lost"); });
+  }
+  function mailStart() {
+    var m = state.mail;
+    if (m.running) return toast(t("t_busy"));
+    if (!(m.hasPass && m.cfg.host)) return toast(t("t_need_smtp"));
+    var subject = $("mSubject").value.trim(), body = $("mBody").value.trim(), list = audience("mail");
+    if (!subject || !body) return toast(t("t_need_subject"));
+    if (!list.length) return toast(t("t_no_recipients"));
+    m.running = true; m.sent = 0; m.failed = 0; m.total = list.length; m.status = "sending"; m.log = []; m.since = 0; m.current = ""; m.note = "";
+    addAct("a_mail", [], "", null, "a_mail_s", [list.length]); renderMail();
+    if (state.live) {
+      jpost("/api/email/start", { ids: list.map(sidOf), subject: subject, body: body, skip_sent: $("mSkip").checked, min_delay: +$("mMin").value, max_delay: +$("mMax").value, daily_cap: +$("mCap").value, batch_size: +$("mBatch").value, batch_pause: +$("mPause").value })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) { if (!res.ok) { m.running = false; m.status = "idle"; renderMail(); toast(res.j.error === "smtp_not_set" ? t("t_need_smtp") : res.j.error === "busy" ? t("t_busy") : t("t_no_recipients")); } else mailPoll(); })
+        .catch(function () { m.running = false; m.status = "error"; m.note = t("t_lost"); renderMail(); });
+    } else {
+      var i = 0; clearInterval(m.timer);
+      m.timer = setInterval(function () {
+        if (i >= list.length) { m.status = "done"; m.running = false; clearInterval(m.timer); renderData(); return; }
+        var l = list[i++]; m.current = l.email; m.sent++; if (l.status === "new") l.status = "contacted";
+        m.log.push({ email: l.email, ok: true, note: "" }); m.status = "sending"; renderData();
+      }, 400);
+    }
+  }
+  function mailPoll() {
+    var m = state.mail; clearInterval(m.timer);
+    m.timer = setInterval(function () {
+      fetch(state.api + "/api/email/state?since=" + m.since).then(function (r) { return r.json(); }).then(function (s) {
+        m.status = s.status; m.sent = s.sent; m.failed = s.failed; m.total = s.total; m.current = s.current; m.note = s.note || "";
+        m.nextAt = Date.now() + (s.next_in || 0) * 1000; m.since = s.next; m.running = s.status === "sending" || s.status === "waiting";
+        (s.entries || []).forEach(function (e) { m.log.push(e); if (e.ok) state.leads.forEach(function (l) { if ((l.email || "").toLowerCase() === e.email && l.status === "new") l.status = "contacted"; }); });
+        renderData(); if (!m.running) clearInterval(m.timer);
+      }).catch(function () { m.running = false; clearInterval(m.timer); });
+    }, 1500);
+  }
+  function mailStop() { var m = state.mail; if (state.live) jpost("/api/email/stop").catch(function () {}); else { m.status = "stopped"; m.running = false; clearInterval(m.timer); } renderMail(); }
+
+  /* ================= events ================= */
+  document.addEventListener("click", function (e) {
+    var el = e.target.closest("button"); if (!el) return;
+    if (el.dataset.c) { var c = el.dataset.c; if (state.chosen.has(c)) state.chosen.delete(c); else state.chosen.add(c); renderChips(); }
+    else if (el.dataset.f) { var f = el.dataset.f; if (f === "phone") return toast(t("t_phone_fixed")); if (state.fields.has(f)) state.fields.delete(f); else state.fields.add(f); renderChips(); }
+    else if (el.dataset.src) { var sc = el.dataset.src; if (state.sources.has(sc)) state.sources.delete(sc); else state.sources.add(sc); renderChips(); }
+    else if (el.dataset.m) { state.mode = el.dataset.m; renderChips(); }
+    else if (el.dataset.tab) { state.tab = el.dataset.tab; state.page = 1; renderTabs(); renderTable(); renderWa(); renderMail(); }
+    else if (el.dataset.page) { state.page = +el.dataset.page; renderTable(); }
+    else if (el.dataset.cycle) {
+      var l = state.leads.filter(function (x) { return x.id === +el.dataset.cycle; })[0]; var ns = ORDER[(ORDER.indexOf(l.status) + 1) % ORDER.length];
+      setStatus([l], ns); addAct("a_status", ["@st_" + ns], coName(l)); renderData();
+    }
+    else if (el.dataset.viewb) { state.batchSel = +el.dataset.viewb; state.sel.clear(); state.page = 1; state.fCountry = "all"; renderData(); location.hash = "leads"; }
+    else if (el.dataset.delb) {
+      var id = +el.dataset.delb;
+      if (state.delArm !== id) { state.delArm = id; renderHistory(); setTimeout(function () { if (state.delArm === id) { state.delArm = null; renderHistory(); } }, 3000); return; }
+      state.delArm = null;
+      if (state.live) fetch(state.api + "/api/batches/" + id, { method: "DELETE" }).catch(function () {});
+      state.leads = state.leads.filter(function (x) { return x.batch !== id; }); state.batches = state.batches.filter(function (x) { return x.id !== id; });
+      state.sel.clear(); if (state.batchSel === id) state.batchSel = "all"; toast(t("t_batch_deleted")); renderData();
+    }
+    else if (el.id === "csvBtn") { var r = csv(); copy(r.text, t("t_csv", r.n)); }
+    else if (el.id === "xlsBtn") exportXlsx();
+    else if (el.id === "toWa") { location.hash = "whatsapp"; }
+    else if (el.id === "toMail") { location.hash = "email"; }
+    else if (el.id === "startBtn") start();
+    else if (el.id === "stopBtn") { if (state.live && state.jobId) jpost("/api/jobs/" + state.jobId + "/stop").catch(function () {}); finish(t("l_stopped")); }
+    else if (el.id === "addCountry") { var v = $("customCountry").value.trim(); if (!v) return; var k = "X" + v.slice(0, 3); COUNTRIES[k] = { n: v, e: v, dial: "···", pre: ["00"], cities: [[v, v]] }; state.chosen.add(k); $("customCountry").value = ""; renderChips(); }
+    else if (el.id === "selAll") {
+      var list = filtered(), all = list.length && list.every(function (x) { return state.sel.has(x.id); });
+      list.forEach(function (x) { if (all) state.sel.delete(x.id); else state.sel.add(x.id); }); renderTable(); renderWa(); renderMail();
+    }
+    else if (el.id === "applyBulk") {
+      var st = $("bulkStatus").value, ss = state.leads.filter(function (x) { return state.sel.has(x.id); });
+      if (!ss.length) return toast(t("t_select_first")); if (!st) return toast(t("t_pick_status"));
+      setStatus(ss, st); addAct("a_marked", [ss.length], "", null, "st_" + st); toast(t("t_marked", ss.length)); renderData();
+    }
+    else if (el.id === "waConnect") waConnect();
+    else if (el.id === "waDisc") waDisconnect(false);
+    else if (el.id === "waSwitch") waDisconnect(true);
+    else if (el.id === "waStart") waStart();
+    else if (el.id === "waStop") waStop();
+    else if (el.id === "mSave") saveMail();
+    else if (el.id === "mTest") testMail();
+    else if (el.id === "mStart") mailStart();
+    else if (el.id === "mStop") mailStop();
+    else if (el.id === "langBtn") applyLang(lang === "ar" ? "en" : "ar");
+  });
+  document.addEventListener("change", function (e) {
+    var el = e.target;
+    if (el.dataset.sel) { var id = +el.dataset.sel; if (el.checked) state.sel.add(id); else state.sel.delete(id); renderTable(); renderWa(); renderMail(); }
+    else if (el.id === "fCountry") { state.fCountry = el.value; state.page = 1; renderTable(); renderWa(); renderMail(); }
+    else if (el.id === "fSource") { state.fSource = el.value; state.page = 1; renderTable(); renderWa(); renderMail(); }
+    else if (el.id === "fBatch") { state.batchSel = el.value === "all" ? "all" : +el.value; state.sel.clear(); state.page = 1; state.fCountry = "all"; renderData(); }
+    else if (el.id === "perPage") { state.per = +el.value; state.page = 1; renderTable(); }
+    else if (el.id === "widen") renderChips();
+    else if (el.id === "waSkip") renderWa();
+    else if (el.id === "mPreset") {
+      var P = { gmail: ["smtp.gmail.com", 587, "starttls"], outlook: ["smtp.office365.com", 587, "starttls"], zoho: ["smtp.zoho.com", 587, "starttls"] }[el.value];
+      if (P) { $("mHost").value = P[0]; $("mPort").value = P[1]; $("mSec").value = P[2]; }
+    }
+  });
+  $("q").addEventListener("input", function (e) { state.q = e.target.value; state.page = 1; renderTable(); renderWa(); renderMail(); });
+  $("kw").addEventListener("input", renderChips);
+  window.addEventListener("hashchange", function () { route(); window.scrollTo(0, 0); });
+  setInterval(function () { if (state.wa.status === "waiting") renderWa(); if (state.mail.status === "waiting") renderMail(); }, 1000);
+  setInterval(waPoll, 2000);
+
+  /* logo: own file first, then the Mirage site, then a text mark */
+  Array.prototype.forEach.call(document.querySelectorAll(".logo-img"), function (img) {
+    img.addEventListener("error", function () {
+      if (!img.dataset.f) { img.dataset.f = "1"; img.src = "https://www.mirageemarketing.com/logo.png"; }
+      else { var s = document.createElement("span"); s.className = "logo-text"; s.textContent = "Mirage"; img.replaceWith(s); }
+    });
+  });
+
+  /* ================= boot: use the backend when it answers, otherwise stay in demo mode ================= */
+  var saved = null; try { saved = localStorage.getItem("mirage-lang"); } catch (e) {}
+  seed(); $("perPage").value = "25"; applyLang(saved === "en" ? "en" : "ar");
+  try {
+    fetch("/api/health").then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      if (!j || !j.ok) return;
+      state.live = true; state.mapsEngine = j.maps || ""; state.leads = []; state.batches = []; state.activity = [];
+      $("modeBadge").className = "badge live"; $("modeBadge").textContent = t("badge_live");
+      return Promise.all([fetch("/api/batches").then(function (r) { return r.json(); }), fetch("/api/leads").then(function (r) { return r.json(); }), fetch("/api/email/settings").then(function (r) { return r.json(); })]).then(function (res) {
+        res[0].forEach(function (b) { state.batches.push({ id: b.id, name: b.name, scanned: b.scanned || 0 }); });
+        res[1].forEach(function (l) { l.sid = l.id; l.id = state.nextId++; state.leads.push(l); });
+        var top = state.batches.slice().sort(function (a, b) { return b.id - a.id; })[0]; state.batchSel = top ? top.id : "all";
+        var cfg = res[2].settings || {}; state.mail.cfg = cfg; state.mail.hasPass = !!cfg.has_password; fillMailForm(cfg);
+        renderAll(); waPoll();
+      });
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
